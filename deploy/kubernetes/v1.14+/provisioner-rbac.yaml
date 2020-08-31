@@ -1,0 +1,111 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: curve-csi-provisioner
+  namespace: csi-system
+
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: curve-external-provisioner-runner
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.curve.csi.netease.com/aggregate-to-curve-external-provisioner-runner: "true"
+rules: []
+
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: curve-external-provisioner-runner-rules
+  labels:
+    rbac.curve.csi.netease.com/aggregate-to-curve-external-provisioner-runner: "true"
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["list", "watch", "create", "update", "patch"]
+- apiGroups: [""]
+  resources: ["persistentvolumes"]
+  verbs: ["get", "list", "watch", "create", "update", "delete"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list", "watch", "update"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshots"]
+  verbs: ["get", "list", "watch", "update"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshotcontents"]
+  verbs: ["create", "get", "list", "watch", "update", "delete"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshotclasses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["create", "list", "watch", "delete", "get", "update"]
+- apiGroups: ["csi.storage.k8s.io"]
+  resources: ["csinodeinfos"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["volumeattachments"]
+  verbs: ["get", "list", "watch", "update"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshots/status"]
+  verbs: ["update"]
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: curve-csi-provisioner-role
+subjects:
+  - kind: ServiceAccount
+    name: curve-csi-provisioner
+    namespace: csi-system
+roleRef:
+  kind: ClusterRole
+  name: curve-external-provisioner-runner
+  apiGroup: rbac.authorization.k8s.io
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: csi-system
+  name: curve-external-provisioner-cfg
+rules:
+- apiGroups: [""]
+  resources: ["endpoints"]
+  verbs: ["get", "watch", "list", "delete", "update", "create"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "watch", "list", "delete", "update", "create"]
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: curve-csi-provisioner-role-cfg
+  namespace: csi-system
+subjects:
+- kind: ServiceAccount
+  name: curve-csi-provisioner
+  namespace: csi-system
+roleRef:
+  kind: Role
+  name: curve-external-provisioner-cfg
+  apiGroup: rbac.authorization.k8s.io

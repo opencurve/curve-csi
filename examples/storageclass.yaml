@@ -1,0 +1,10 @@
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: csi-curve-sc
+parameters:
+  user: k8s
+provisioner: curve.csi.netease.com
+reclaimPolicy: Delete
+volumeBindingMode: Immediate

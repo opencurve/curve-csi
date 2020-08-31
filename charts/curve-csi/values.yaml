@@ -1,0 +1,66 @@
+nodeplugin:
+  debug:
+    enabled: true
+    port: 9595
+
+  logToFile:
+    enabled: true
+    hostDir: /var/log/curve-csi-node
+
+  plugin:
+    image:
+      repository: quay.io/curvecsi/curve-csi
+      tag: csi-v1.1.0-rc1
+      pullPolicy: IfNotPresent
+    resources: {}
+
+  registrar:
+    image:
+      repository: quay.io/k8scsi/csi-node-driver-registrar
+      tag: v1.1.0
+      pullPolicy: IfNotPresent
+    resources: {}
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+
+controllerplugin:
+  debug:
+    enabled: true
+    port: 9696
+
+  logToFile:
+    enabled: true
+    hostDir: /var/log/curve-csi-controller
+
+  plugin:
+    image:
+      repository: quay.io/curvecsi/curve-csi
+      tag: csi-v1.1.0-rc1
+      pullPolicy: IfNotPresent
+    resources: {}
+
+  provisioner:
+    image:
+      repository:
+      tag:
+      pullPolicy: IfNotPresent
+    resources: {}
+
+  attacher:
+    image:
+      repository:
+      tag:
+      pullPolicy: IfNotPresent
+    resources: {}
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: csi-curve-test
+spec:
+  containers:
+  - name: web-server
+    image: nginx
+    volumeMounts:
+    - name: mypvc
+      mountPath: /var/lib/www/html
+  volumes:
+  - name: mypvc
+    persistentVolumeClaim:
+      claimName: curve-test-pvc

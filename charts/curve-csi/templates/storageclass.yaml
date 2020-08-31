@@ -1,0 +1,11 @@
+{{- if .Values.storageClass.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: csi-curve-sc
+parameters:
+  user: {{ .Values.storageClass.parameters.user }}
+provisioner: curve.csi.netease.com
+reclaimPolicy: Delete
+allowVolumeExpansion: {{ .Values.storageClass.allowVolumeExpansion }}
+{{- end }}
