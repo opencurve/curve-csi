@@ -14,4 +14,4 @@ ADD curve-csi /bin/curve-csi
 RUN chmod +x /bin/curve-csi && \
     clean-install ca-certificates e2fsprogs mount xfsprogs udev
 
-CMD ["/bin/curve-csi"]
+ENTRYPOINT ["/bin/curve-csi"]

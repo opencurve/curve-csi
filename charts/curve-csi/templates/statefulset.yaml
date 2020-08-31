@@ -41,6 +41,9 @@ spec:
                 - {{ include "curve-csi.name" . }}-controllerplugin
             topologyKey: kubernetes.io/hostname
       serviceAccount: curve-csi-provisioner
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: csi-provisioner
         image: "{{ .Values.controllerplugin.provisioner.image.repository }}:{{ .Values.controllerplugin.provisioner.image.tag }}"
