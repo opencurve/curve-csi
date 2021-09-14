@@ -1,7 +1,7 @@
 .PHONY: all
 
 CSI_IMAGE_NAME=$(if $(ENV_CSI_IMAGE_NAME),$(ENV_CSI_IMAGE_NAME),quay.io/curvecsi/curve-csi)
-CSI_IMAGE_VERSION=$(if $(ENV_CSI_IMAGE_VERSION),$(ENV_CSI_IMAGE_VERSION),csi-v1.1.0-rc1)
+CSI_IMAGE_VERSION=$(if $(ENV_CSI_IMAGE_VERSION),$(ENV_CSI_IMAGE_VERSION),csi-v1.1.0-rc2)
 
 GO_PROJECT=github.com/opencurve/curve-csi
 GIT_COMMIT=$(shell git rev-parse --short HEAD)

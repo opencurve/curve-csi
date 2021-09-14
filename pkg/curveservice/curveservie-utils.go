@@ -70,8 +70,10 @@ func waitForMapped(ctx context.Context, filePath, user string, maxRetries int) (
 			time.Sleep(time.Second)
 		}
 
-		if devicePath, _ := getNbdDevFromFileName(ctx, filePath, user); devicePath != "" {
+		if devicePath, err := getNbdDevFromFileName(ctx, filePath, user); devicePath != "" {
 			return devicePath, true
+		} else if err != nil {
+			klog.Warning(err)
 		}
 	}
 	return "", false
@@ -92,7 +94,7 @@ func getNbdDevFromFileName(ctx context.Context, filePath, user string) (string, 
 			continue
 		}
 		lineSlice := strings.Fields(tLine)
-		if len(lineSlice) != 3 {
+		if len(lineSlice) < 3 {
 			continue
 		}
 		// cbdMapPathSuffix: /k8s/csi-vol-pvc-647525be-c0d6-464b-b548-1fa26f6d183c_k8s_

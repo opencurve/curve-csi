@@ -77,7 +77,7 @@ spec:
           privileged: true
           capabilities:
             add: ["SYS_ADMIN"]
-        image: quay.io/curvecsi/curve-csi:csi-v1.1.0-rc1
+        image: quay.io/curvecsi/curve-csi:csi-v1.1.0-rc2
         args:
         - --endpoint=$(CSI_ENDPOINT)
         - --drivername=curve.csi.netease.com
