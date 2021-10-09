@@ -9,8 +9,8 @@ nodeplugin:
 
   plugin:
     image:
-      repository: quay.io/curvecsi/curve-csi
-      tag: csi-v1.1.0-rc1
+      repository: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi
+      tag: csi-v1.1.0-rc2
       pullPolicy: IfNotPresent
     resources: {}
 
@@ -39,8 +39,8 @@ controllerplugin:
 
   plugin:
     image:
-      repository: quay.io/curvecsi/curve-csi
-      tag: csi-v1.1.0-rc1
+      repository: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi
+      tag: csi-v1.1.0-rc2
       pullPolicy: IfNotPresent
     resources: {}
 
