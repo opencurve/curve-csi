@@ -24,11 +24,12 @@ import (
 	"sync/atomic"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/csi-addons/spec/lib/go/replication"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/opencurve/curve-csi/pkg/util"
 )
@@ -130,6 +131,16 @@ func getReqID(req interface{}) string {
 	case *csi.NodeUnpublishVolumeRequest:
 		reqID = r.VolumeId
 	case *csi.NodeExpandVolumeRequest:
+		reqID = r.VolumeId
+	case *replication.EnableVolumeReplicationRequest:
+		reqID = r.VolumeId
+	case *replication.DisableVolumeReplicationRequest:
+		reqID = r.VolumeId
+	case *replication.PromoteVolumeRequest:
+		reqID = r.VolumeId
+	case *replication.DemoteVolumeRequest:
+		reqID = r.VolumeId
+	case *replication.ResyncVolumeRequest:
 		reqID = r.VolumeId
 	}
 	return reqID

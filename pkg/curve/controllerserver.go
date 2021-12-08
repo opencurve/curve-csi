@@ -23,7 +23,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	volumehelpers "k8s.io/cloud-provider/volume/helpers"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	csicommon "github.com/opencurve/curve-csi/pkg/csi-common"
 	"github.com/opencurve/curve-csi/pkg/curveservice"
@@ -32,7 +32,9 @@ import (
 
 type controllerServer struct {
 	*csicommon.DefaultControllerServer
-	volumeLocks *util.VolumeLocks
+
+	volumeLocks       *util.VolumeLocks
+	curveVolumePrefix string
 }
 
 // CreateVolume creates the volume in backend, if it is not already present
@@ -51,7 +53,7 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 
 	klog.Infof(util.Log(ctx, "starting creating volume requestNamed %s"), reqName)
 	// get volume options
-	volOptions, err := newVolumeOptions(req)
+	volOptions, err := newVolumeOptions(req, cs.curveVolumePrefix)
 	if err != nil {
 		klog.Errorf(util.Log(ctx, "failed to new volume options, err: %v"), err)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -63,6 +65,9 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		klog.Errorf(util.Log(ctx, "failed to composeCSIID, err: %v"), err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	klog.V(5).Infof(util.Log(ctx, "build volumeOptions: %+v with csiVolumeId: %v"), volOptions, csiVolumeId)
+
+	// TODO: support volume clone and snapshot restore
 
 	// verify the volume already exists
 	curveVol := curveservice.NewCurveVolume(volOptions.user, volOptions.volName, volOptions.sizeGiB)
@@ -115,7 +120,7 @@ func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 
 	klog.Infof("starting deleting volume id %s", volumeId)
 
-	volOptions, err := newVolumeOptionsFromVolID(volumeId)
+	volOptions, err := newVolumeOptionsFromVolID(volumeId, cs.curveVolumePrefix)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -156,7 +161,7 @@ func (cs *controllerServer) ControllerExpandVolume(ctx context.Context, req *csi
 	}
 	defer cs.volumeLocks.Release(volumeId)
 
-	volOptions, err := newVolumeOptionsFromVolID(volumeId)
+	volOptions, err := newVolumeOptionsFromVolID(volumeId, cs.curveVolumePrefix)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

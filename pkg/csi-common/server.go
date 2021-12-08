@@ -17,7 +17,6 @@ limitations under the License.
 package csicommon
 
 import (
-	"k8s.io/klog"
 	"net"
 	"os"
 	"sync"
@@ -25,6 +24,7 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
+	"k8s.io/klog/v2"
 )
 
 // NonBlockingGRPCServer defines Non blocking GRPC server interfaces

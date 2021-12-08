@@ -20,6 +20,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/pprof"
+	runtime_pprof "runtime/pprof"
+
+	"k8s.io/klog/v2"
 )
 
 type StringFlagSetterFunc func(string) (string, error)
@@ -54,4 +58,24 @@ func writePlainText(statusCode int, text string, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(statusCode)
 	fmt.Fprintln(w, text)
+}
+
+// EnableProfiling enables golang profiling.
+func EnableProfiling() {
+	for _, profile := range runtime_pprof.Profiles() {
+		name := profile.Name()
+		handler := pprof.Handler(name)
+		addPath(name, handler)
+	}
+
+	// static profiles as listed in net/http/pprof/pprof.go:init()
+	addPath("cmdline", http.HandlerFunc(pprof.Cmdline))
+	addPath("profile", http.HandlerFunc(pprof.Profile))
+	addPath("symbol", http.HandlerFunc(pprof.Symbol))
+	addPath("trace", http.HandlerFunc(pprof.Trace))
+}
+
+func addPath(name string, handler http.Handler) {
+	http.Handle(name, handler)
+	klog.V(4).Infof("DEBUG: registered profiling handler on /debug/pprof/%s", name)
 }

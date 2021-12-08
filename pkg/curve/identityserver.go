@@ -30,8 +30,10 @@ type identityServer struct {
 	*csicommon.DefaultIdentityServer
 }
 
-// GetPluginCapabilities returns available capabilities of the curve driver
-func (is *identityServer) GetPluginCapabilities(ctx context.Context, req *csi.GetPluginCapabilitiesRequest) (*csi.GetPluginCapabilitiesResponse, error) {
+// GetPluginCapabilities returns available capabilities of the rbd driver.
+func (is *identityServer) GetPluginCapabilities(
+	ctx context.Context,
+	req *csi.GetPluginCapabilitiesRequest) (*csi.GetPluginCapabilitiesResponse, error) {
 	return &csi.GetPluginCapabilitiesResponse{
 		Capabilities: []*csi.PluginCapability{
 			{
@@ -45,6 +47,13 @@ func (is *identityServer) GetPluginCapabilities(ctx context.Context, req *csi.Ge
 				Type: &csi.PluginCapability_VolumeExpansion_{
 					VolumeExpansion: &csi.PluginCapability_VolumeExpansion{
 						Type: csi.PluginCapability_VolumeExpansion_ONLINE,
+					},
+				},
+			},
+			{
+				Type: &csi.PluginCapability_Service_{
+					Service: &csi.PluginCapability_Service{
+						Type: csi.PluginCapability_Service_VOLUME_ACCESSIBILITY_CONSTRAINTS,
 					},
 				},
 			},

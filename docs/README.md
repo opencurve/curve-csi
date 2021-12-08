@@ -138,7 +138,7 @@ $ uuidgen
 fa0c04c9-2e93-487e-8986-1e1625fd8c46
 
 $ csc controller create --endpoint tcp://127.0.0.1:10000 \
-    --lim-bytes 10737418240 \
+    --req-bytes 10737418240 \
     --cap 1,mount,ext4 \
     --params user=k8s \
     volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46

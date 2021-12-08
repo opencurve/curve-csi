@@ -25,7 +25,9 @@ import (
 	volumehelpers "k8s.io/cloud-provider/volume/helpers"
 )
 
-const csiVolNamingPrefix = "csi-vol-"
+const (
+	csiDefaultVolNamingPrefix = "csi-vol-"
+)
 
 type volumeOptions struct {
 	reqName string
@@ -34,7 +36,7 @@ type volumeOptions struct {
 	user    string
 }
 
-func newVolumeOptions(req *csi.CreateVolumeRequest) (*volumeOptions, error) {
+func newVolumeOptions(req *csi.CreateVolumeRequest, curveVolumePrefix string) (*volumeOptions, error) {
 	var (
 		ok  bool
 		err error
@@ -42,7 +44,12 @@ func newVolumeOptions(req *csi.CreateVolumeRequest) (*volumeOptions, error) {
 	opts := &volumeOptions{
 		reqName: req.GetName(),
 	}
-	opts.volName = csiVolNamingPrefix + opts.reqName
+
+	if curveVolumePrefix != "" {
+		opts.volName = curveVolumePrefix + opts.reqName
+	} else {
+		opts.volName = csiDefaultVolNamingPrefix + opts.reqName
+	}
 
 	volOptions := req.GetParameters()
 	opts.user, ok = volOptions["user"]
@@ -53,7 +60,7 @@ func newVolumeOptions(req *csi.CreateVolumeRequest) (*volumeOptions, error) {
 	// volume size - default is 10GiB
 	opts.sizeGiB = 10
 	if req.GetCapacityRange() != nil {
-		opts.sizeGiB, err = roundUpToGiBInt(req.GetCapacityRange().GetLimitBytes())
+		opts.sizeGiB, err = roundUpToGiBInt(req.GetCapacityRange().GetRequiredBytes())
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +69,7 @@ func newVolumeOptions(req *csi.CreateVolumeRequest) (*volumeOptions, error) {
 	return opts, nil
 }
 
-func newVolumeOptionsFromVolID(volumeId string) (*volumeOptions, error) {
+func newVolumeOptionsFromVolID(volumeId string, curveVolumePrefix string) (*volumeOptions, error) {
 	var (
 		volOptions volumeOptions
 		err        error
@@ -72,7 +79,11 @@ func newVolumeOptionsFromVolID(volumeId string) (*volumeOptions, error) {
 	if err != nil {
 		return nil, err
 	}
-	volOptions.reqName = strings.TrimPrefix(volOptions.volName, csiVolNamingPrefix)
+	volNamingPrefix := curveVolumePrefix
+	if volNamingPrefix == "" {
+		volNamingPrefix = csiDefaultVolNamingPrefix
+	}
+	volOptions.reqName = strings.TrimPrefix(volOptions.volName, volNamingPrefix)
 
 	return &volOptions, nil
 }

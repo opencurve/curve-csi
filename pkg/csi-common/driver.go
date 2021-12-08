@@ -22,15 +22,16 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 type CSIDriver struct {
-	name    string
-	nodeID  string
-	version string
-	cap     []*csi.ControllerServiceCapability
-	vc      []*csi.VolumeCapability_AccessMode
+	name         string
+	nodeID       string
+	version      string
+	topology     map[string]string
+	capabilities []*csi.ControllerServiceCapability
+	vc           []*csi.VolumeCapability_AccessMode
 }
 
 // Creates a NewCSIDriver object. Assumes vendor version is equal to driver version &
@@ -67,7 +68,7 @@ func (d *CSIDriver) ValidateControllerServiceRequest(c csi.ControllerServiceCapa
 		return nil
 	}
 
-	for _, cap := range d.cap {
+	for _, cap := range d.capabilities {
 		if c == cap.GetRpc().GetType() {
 			return nil
 		}
@@ -85,7 +86,7 @@ func (d *CSIDriver) AddControllerServiceCapabilities(cl []csi.ControllerServiceC
 		csc = append(csc, NewControllerServiceCapability(c))
 	}
 
-	d.cap = csc
+	d.capabilities = csc
 }
 
 // AddVolumeCapabilityAccessModes stores volume access modes

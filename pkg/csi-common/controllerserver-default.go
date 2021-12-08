@@ -22,7 +22,7 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/opencurve/curve-csi/pkg/util"
 )
@@ -61,8 +61,11 @@ func (cs *DefaultControllerServer) GetCapacity(ctx context.Context, req *csi.Get
 // Default supports all capabilities
 func (cs *DefaultControllerServer) ControllerGetCapabilities(ctx context.Context, req *csi.ControllerGetCapabilitiesRequest) (*csi.ControllerGetCapabilitiesResponse, error) {
 	klog.V(5).Infof(util.Log(ctx, "Using default ControllerGetCapabilities"))
+	if cs.Driver == nil {
+		return nil, status.Error(codes.Unimplemented, "Controller server is not enabled")
+	}
 	return &csi.ControllerGetCapabilitiesResponse{
-		Capabilities: cs.Driver.cap,
+		Capabilities: cs.Driver.capabilities,
 	}, nil
 }
 
@@ -78,5 +81,10 @@ func (cs *DefaultControllerServer) DeleteSnapshot(ctx context.Context, req *csi.
 
 // ListSnapshots lists snapshosts
 func (cs *DefaultControllerServer) ListSnapshots(ctx context.Context, req *csi.ListSnapshotsRequest) (*csi.ListSnapshotsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "")
+}
+
+// ControllerGetVolume fetch volume information.
+func (cs *DefaultControllerServer) ControllerGetVolume(ctx context.Context, req *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "")
 }

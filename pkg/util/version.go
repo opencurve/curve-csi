@@ -16,11 +16,13 @@ limitations under the License.
 
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"runtime"
+)
 
 var (
 	BuildTime string
-	GoVersion string
 	GitCommit string
 	Version   string
 )
@@ -28,8 +30,9 @@ var (
 func GetVersion() string {
 	format := `Version:    %s
 Go version: %s
+Platform: %s/%s
 Git commit: %s
 Built:      %s
 `
-	return fmt.Sprintf(format, Version, GoVersion, GitCommit, BuildTime)
+	return fmt.Sprintf(format, Version, runtime.Version(), runtime.GOOS, runtime.GOARCH, GitCommit, BuildTime)
 }

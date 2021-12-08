@@ -13,7 +13,7 @@ Refer to [https://github.com/opencurve/curve](https://github.com/opencurve/curve
 
 ## Supported version
 
-The driver is currently developed with csi spec v1.1.0, and tested on kubernetes v1.13+.
+The driver is currently developed with csi spec v1.5.0, and supported kubernetes v1.17+.
 
 Other csi-v1.0+ enabled container orchestrator environments may work fine.
 
