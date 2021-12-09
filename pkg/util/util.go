@@ -23,7 +23,8 @@ import (
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/validation"
-	"k8s.io/klog/v2"
+
+	"github.com/opencurve/curve-csi/pkg/util/ctxlog"
 )
 
 // ValidateDriverName validates the driver name
@@ -47,7 +48,7 @@ func ValidateDriverName(driverName string) error {
 }
 
 func SystemMapOnHost(ctx context.Context, serviceName string, mapCommands []string) (err error) {
-	klog.Infof(Log(ctx, "starting to run %s.service"), serviceName)
+	ctxlog.Infof(ctx, "starting to run %s.service", serviceName)
 	systemMapArgs := []string{"--description=k8scsi", "--unit", serviceName, "-r", "--"}
 	systemMapArgs = append(systemMapArgs, mapCommands...)
 
@@ -56,7 +57,7 @@ func SystemMapOnHost(ctx context.Context, serviceName string, mapCommands []stri
 		// tear down
 		if err != nil {
 			output, _ = ExecCommandHost("systemctl", []string{"status", serviceName})
-			klog.Warningf(Log(ctx, "systemctl status %s, output: %s"), serviceName, string(output))
+			ctxlog.Warningf(ctx, "systemctl status %s, output: %s", serviceName, string(output))
 			_, _ = ExecCommandHost("systemctl", []string{"stop", serviceName})
 			_, _ = ExecCommandHost("systemctl", []string{"reset-failed", serviceName})
 		}
@@ -68,7 +69,7 @@ func SystemMapOnHost(ctx context.Context, serviceName string, mapCommands []stri
 		if !strings.Contains(string(output), "already exists") {
 			return fmt.Errorf("failed to map, output: %s", string(output))
 		}
-		klog.Warningf(Log(ctx, "systemctl reset-failed %s.service and try mapping again"), serviceName)
+		ctxlog.Warningf(ctx, "systemctl reset-failed %s.service and try mapping again", serviceName)
 		_, _ = ExecCommandHost("systemctl", []string{"reset-failed", serviceName})
 		_, _ = ExecCommandHost("systemd-run", systemMapArgs)
 	}
@@ -80,6 +81,6 @@ func SystemMapOnHost(ctx context.Context, serviceName string, mapCommands []stri
 	if !strings.Contains(string(output), "ExecMainStatus=0") {
 		return fmt.Errorf("%s.service started successfully, but map failed, %s", serviceName, string(output))
 	}
-	klog.Infof(Log(ctx, "map successfully, running as %s.service"), serviceName)
+	ctxlog.Infof(ctx, "map successfully, running as %s.service", serviceName)
 	return nil
 }

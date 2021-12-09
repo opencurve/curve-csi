@@ -17,8 +17,6 @@ limitations under the License.
 package csicommon
 
 import (
-	"fmt"
-
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -53,9 +51,10 @@ func NewCSIDriver(name, v, nodeID string) *CSIDriver {
 	}
 
 	driver := CSIDriver{
-		name:    name,
-		version: v,
-		nodeID:  nodeID,
+		name:     name,
+		version:  v,
+		nodeID:   nodeID,
+		topology: make(map[string]string),
 	}
 
 	return &driver
@@ -73,7 +72,7 @@ func (d *CSIDriver) ValidateControllerServiceRequest(c csi.ControllerServiceCapa
 			return nil
 		}
 	}
-	return status.Error(codes.InvalidArgument, fmt.Sprintf("%s", c))
+	return status.Error(codes.InvalidArgument, string(c))
 }
 
 // AddControllerServiceCapabilities stores the controller capabilities

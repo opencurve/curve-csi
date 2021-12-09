@@ -22,9 +22,8 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog/v2"
 
-	"github.com/opencurve/curve-csi/pkg/util"
+	"github.com/opencurve/curve-csi/pkg/util/ctxlog"
 )
 
 // DefaultControllerServer points to default driver
@@ -60,7 +59,7 @@ func (cs *DefaultControllerServer) GetCapacity(ctx context.Context, req *csi.Get
 // ControllerGetCapabilities implements the default GRPC callout.
 // Default supports all capabilities
 func (cs *DefaultControllerServer) ControllerGetCapabilities(ctx context.Context, req *csi.ControllerGetCapabilitiesRequest) (*csi.ControllerGetCapabilitiesResponse, error) {
-	klog.V(5).Infof(util.Log(ctx, "Using default ControllerGetCapabilities"))
+	ctxlog.V(5).Infof(ctx, "Using default ControllerGetCapabilities")
 	if cs.Driver == nil {
 		return nil, status.Error(codes.Unimplemented, "Controller server is not enabled")
 	}
