@@ -131,10 +131,6 @@ func (ns *nodeServer) validateNodeExpandVolumeRequest(req *csi.NodeExpandVolumeR
 		return status.Error(codes.InvalidArgument, "volume ID missing in request")
 	}
 
-	if req.GetVolumePath() == "" {
-		return status.Error(codes.InvalidArgument, "volume path missing in request")
-	}
-
 	return nil
 }
 

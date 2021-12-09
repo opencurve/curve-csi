@@ -1,26 +1,11 @@
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: csi-curve-plugin-provisioner
-  name: csi-curve-plugin-provisioner
-  namespace: csi-system
-spec:
-  clusterIP: None
-  selector:
-    app: csi-curve-plugin-provisioner
-  type: ClusterIP
-
----
-kind: StatefulSet
+kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: csi-curve-plugin-provisioner
   namespace: csi-system
 spec:
-  serviceName: csi-curve-plugin-provisioner
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: csi-curve-plugin-provisioner
@@ -39,18 +24,20 @@ spec:
                 values:
                 - csi-curve-plugin-provisioner
             topologyKey: kubernetes.io/hostname
-      serviceAccount: curve-csi-provisioner
+      serviceAccountName: curve-csi-provisioner
       hostNetwork: true
       hostPID: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: csi-provisioner
-        image: quay.io/k8scsi/csi-provisioner:v1.3.0
+        image: k8s.gcr.io/sig-storage/csi-provisioner:v2.2.2
         args:
         - "--csi-address=$(ADDRESS)"
         - "--v=5"
         - "--timeout=150s"
+        - "--leader-election=true"
         - "--retry-interval-start=500ms"
+        - "--feature-gates=Topology=false"
         env:
         - name: ADDRESS
           value: unix:///csi/csi-provisioner.sock
@@ -58,10 +45,12 @@ spec:
         - name: socket-dir
           mountPath: /csi
       - name: csi-attacher
-        image: quay.io/k8scsi/csi-attacher:v1.2.0
+        image: k8s.gcr.io/sig-storage/csi-attacher:v3.2.1
         args:
         - "--v=5"
         - "--csi-address=$(ADDRESS)"
+        - "--leader-election=true"
+        - "--retry-interval-start=500ms"
         env:
         - name: ADDRESS
           value: /csi/csi-provisioner.sock
@@ -72,12 +61,46 @@ spec:
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
+      - name: csi-resizer
+        image: k8s.gcr.io/sig-storage/csi-resizer:v1.2.0
+        args:
+        - "--csi-address=$(ADDRESS)"
+        - "--v=5"
+        - "--timeout=150s"
+        - "--leader-election"
+        - "--retry-interval-start=500ms"
+        - "--handle-volume-inuse-error=false"
+        env:
+        - name: ADDRESS
+          value: /csi/csi-provisioner.sock
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+      - name: csi-snapshotter
+        image: k8s.gcr.io/sig-storage/csi-snapshotter:v3.0.3
+        args:
+          - "--csi-address=$(ADDRESS)"
+          - "--v=5"
+          - "--timeout=150s"
+          - "--leader-election=true"
+        env:
+        - name: ADDRESS
+          value: unix:///csi/csi-provisioner.sock
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
       - name: csi-curveplugin
         securityContext:
           privileged: true
           capabilities:
             add: ["SYS_ADMIN"]
-        image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:csi-v1.1.0-rc2
+        image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:csi-v1.5.0-rc1
         args:
         - --endpoint=$(CSI_ENDPOINT)
         - --drivername=curve.csi.netease.com

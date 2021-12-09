@@ -1,9 +1,12 @@
 ---
 kind: DaemonSet
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 metadata:
   name: csi-curve-plugin
-  namespace: csi-system
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+    app: csi-curve-plugin
 spec:
   selector:
     matchLabels:
@@ -15,27 +18,19 @@ spec:
       labels:
         app: csi-curve-plugin
     spec:
-      serviceAccount: curve-csi-nodeplugin
+      serviceAccountName: curve-csi-nodeplugin
       hostNetwork: true
       hostPID: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: driver-registrar
-        image: quay.io/k8scsi/csi-node-driver-registrar:v1.1.0
+        image: "{{ .Values.nodeplugin.registrar.image }}"
         securityContext:
           privileged: true
         args:
         - "--v=5"
         - "--csi-address=/csi/csi.sock"
         - "--kubelet-registration-path=/var/lib/kubelet/plugins/curve.csi.netease.com/csi.sock"
-        lifecycle:
-          preStop:
-            exec:
-              command: [
-                "/bin/sh", "-c",
-                "rm -rf /registration/curve.csi.netease.com \
-              /registration/curve.csi.netease.com-reg.sock"
-              ]
         env:
         - name: KUBE_NODE_NAME
           valueFrom:
@@ -46,21 +41,30 @@ spec:
           mountPath: /csi
         - name: registration-dir
           mountPath: /registration
+        resources:
+{{ toYaml .Values.nodeplugin.registrar.resources | indent 10 }}
       - name: csi-curveplugin
         securityContext:
           privileged: true
           capabilities:
             add: ["SYS_ADMIN"]
           allowPrivilegeEscalation: true
-        image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:csi-v1.1.0-rc2
+        image: "{{ .Values.nodeplugin.plugin.image }}"
         args:
         - --endpoint=$(CSI_ENDPOINT)
+{{- if .Values.common.curveVolumeNamingPrefix }}
+        - "--curve-volume-prefix={{ .Values.common.curveVolumeNamingPrefix }}"
+{{- end }}
         - --drivername=curve.csi.netease.com
         - --nodeid=$(NODE_ID)
+{{- if .Values.nodeplugin.debug.enabled }}
+        - "--debug-port={{ .Values.nodeplugin.debug.port }}"
+{{- end }}
         - --node-server=true
-        - --debug-port=9595
+{{- if .Values.nodeplugin.logToFile.enabled }}
         - --logtostderr=false
         - --log_dir=/var/log/csi-curveplugin
+{{- end }}
         - -v=4
         env:
         - name: POD_IP
@@ -77,6 +81,8 @@ spec:
               fieldPath: metadata.namespace
         - name: CSI_ENDPOINT
           value: unix:///csi/csi.sock
+        resources:
+{{ toYaml .Values.nodeplugin.plugin.resources | indent 10 }}
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
@@ -95,8 +101,10 @@ spec:
           mountPropagation: "Bidirectional"
         - mountPath: /etc/localtime
           name: localtime
+{{- if .Values.nodeplugin.logToFile.enabled }}
         - mountPath: /var/log/csi-curveplugin
           name: log
+{{- end }}
       volumes:
       - name: socket-dir
         hostPath:
@@ -126,6 +134,20 @@ spec:
       - name: localtime
         hostPath:
           path: /etc/localtime
+{{- if .Values.nodeplugin.logToFile.enabled }}
       - name: log
         hostPath:
-          path: /var/log/csi-curveplugin
+          path: {{ .Values.nodeplugin.logToFile.hostDir }}
+{{- end -}}
+{{- if .Values.nodeplugin.affinity }}
+      affinity:
+{{ toYaml .Values.nodeplugin.affinity . | indent 8 -}}
+{{- end -}}
+{{- if .Values.nodeplugin.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeplugin.nodeSelector | indent 8 -}}
+{{- end -}}
+{{- if .Values.nodeplugin.tolerations }}
+      tolerations:
+{{ toYaml .Values.nodeplugin.tolerations | indent 8 -}}
+{{- end -}}

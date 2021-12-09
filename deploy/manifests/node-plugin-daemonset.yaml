@@ -15,27 +15,19 @@ spec:
       labels:
         app: csi-curve-plugin
     spec:
-      serviceAccount: curve-csi-nodeplugin
+      serviceAccountName: curve-csi-nodeplugin
       hostNetwork: true
       hostPID: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: driver-registrar
-        image: quay.io/k8scsi/csi-node-driver-registrar:v1.1.0
+        image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.2.0
         securityContext:
           privileged: true
         args:
         - "--v=5"
         - "--csi-address=/csi/csi.sock"
         - "--kubelet-registration-path=/var/lib/kubelet/plugins/curve.csi.netease.com/csi.sock"
-        lifecycle:
-          preStop:
-            exec:
-              command: [
-                "/bin/sh", "-c",
-                "rm -rf /registration/curve.csi.netease.com \
-              /registration/curve.csi.netease.com-reg.sock"
-              ]
         env:
         - name: KUBE_NODE_NAME
           valueFrom:
@@ -52,7 +44,7 @@ spec:
           capabilities:
             add: ["SYS_ADMIN"]
           allowPrivilegeEscalation: true
-        image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:csi-v1.1.0-rc2
+        image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:csi-v1.5.0-rc1
         args:
         - --endpoint=$(CSI_ENDPOINT)
         - --drivername=curve.csi.netease.com
