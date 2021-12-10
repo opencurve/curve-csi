@@ -1,7 +1,7 @@
 CSI_IMAGE_NAME?=harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi
 
 # VERSION is the git tag
-VERSION?=$(shell git describe --tags --match "csi-v*")
+VERSION?=$(shell git describe --tags --match "v*")
 
 GO_PROJECT=github.com/opencurve/curve-csi
 GIT_COMMIT=$(shell git rev-parse --short HEAD)

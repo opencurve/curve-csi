@@ -1,4 +1,4 @@
-## csi-v1.5.0-rc1
+## v2.0.0-alpha
 
 - update csi spec to v1.5.0
 
