@@ -26,6 +26,10 @@ type CurveConf struct {
 	IsControllerServer bool
 	IsNodeServer       bool
 
-	// debug port
-	DebugPort int
+	// curve volume namd prefix
+	CurveVolumePrefix string
+
+	// debugs
+	DebugPort       int
+	EnableProfiling bool
 }

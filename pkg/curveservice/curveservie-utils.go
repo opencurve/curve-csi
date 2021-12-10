@@ -23,9 +23,10 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/opencurve/curve-csi/pkg/util"
+	"github.com/opencurve/curve-csi/pkg/util/ctxlog"
 )
 
 const (
@@ -100,12 +101,12 @@ func getNbdDevFromFileName(ctx context.Context, filePath, user string) (string, 
 		// cbdMapPathSuffix: /k8s/csi-vol-pvc-647525be-c0d6-464b-b548-1fa26f6d183c_k8s_
 		cbdMapPathSuffix := fmt.Sprintf("%s_%s_", filePath, user)
 		if strings.HasSuffix(lineSlice[1], cbdMapPathSuffix) {
-			klog.Infof(util.Log(ctx, "get device path: %s of filePath: %s"), lineSlice[2], filePath)
+			ctxlog.Infof(ctx, "get device path: %s of filePath: %s", lineSlice[2], filePath)
 			return lineSlice[2], nil
 		}
 	}
 
-	klog.Warningf(util.Log(ctx, "can't find devicePath of filePath: %s"), filePath)
+	ctxlog.Warningf(ctx, "can't find devicePath of filePath: %s", filePath)
 	return "", nil
 }
 
@@ -123,7 +124,7 @@ func waitForCurveFileReady(ctx context.Context, fileName, user string, disableIn
 			return false, fmt.Errorf("fail to check curve file %s status with: (%v), output: (%s)", fileName, err, output)
 		}
 		if disableInUseChecks && used {
-			klog.Infof(util.Log(ctx, "valid multi-node attach requested, ignoring watcher in-use result"))
+			ctxlog.Infof(ctx, "valid multi-node attach requested, ignoring watcher in-use result")
 			return used, nil
 		}
 		return !used, nil

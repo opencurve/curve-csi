@@ -24,13 +24,13 @@ import (
 	"sync/atomic"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/csi-addons/spec/lib/go/replication"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog"
 
-	"github.com/opencurve/curve-csi/pkg/util"
+	"github.com/opencurve/curve-csi/pkg/util/ctxlog"
 )
 
 func parseEndpoint(ep string) (string, string, error) {
@@ -131,6 +131,16 @@ func getReqID(req interface{}) string {
 		reqID = r.VolumeId
 	case *csi.NodeExpandVolumeRequest:
 		reqID = r.VolumeId
+	case *replication.EnableVolumeReplicationRequest:
+		reqID = r.VolumeId
+	case *replication.DisableVolumeReplicationRequest:
+		reqID = r.VolumeId
+	case *replication.PromoteVolumeRequest:
+		reqID = r.VolumeId
+	case *replication.DemoteVolumeRequest:
+		reqID = r.VolumeId
+	case *replication.ResyncVolumeRequest:
+		reqID = r.VolumeId
 	}
 	return reqID
 }
@@ -139,22 +149,22 @@ var id uint64
 
 func contextIDInjector(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	atomic.AddUint64(&id, 1)
-	ctx = context.WithValue(ctx, util.CtxKey, id)
+	ctx = context.WithValue(ctx, ctxlog.CtxKey, id)
 	reqID := getReqID(req)
 	if reqID != "" {
-		ctx = context.WithValue(ctx, util.ReqID, reqID)
+		ctx = context.WithValue(ctx, ctxlog.ReqID, reqID)
 	}
 	return handler(ctx, req)
 }
 
 func logGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	klog.V(3).Infof(util.Log(ctx, "GRPC call: %s"), info.FullMethod)
-	klog.V(5).Infof(util.Log(ctx, "GRPC request: %s"), protosanitizer.StripSecrets(req))
+	ctxlog.V(3).Infof(ctx, "GRPC call: %s", info.FullMethod)
+	ctxlog.V(5).Infof(ctx, "GRPC request: %s", protosanitizer.StripSecrets(req))
 	resp, err := handler(ctx, req)
 	if err != nil {
-		klog.Errorf(util.Log(ctx, "GRPC error: %v"), err)
+		ctxlog.ErrorS(ctx, err, "GRPC error")
 	} else {
-		klog.V(5).Infof(util.Log(ctx, "GRPC response: %s"), protosanitizer.StripSecrets(resp))
+		ctxlog.V(5).Infof(ctx, "GRPC response: %s", protosanitizer.StripSecrets(resp))
 	}
 	return resp, err
 }
@@ -162,7 +172,7 @@ func logGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, h
 func panicHandler(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			klog.Errorf("panic occurred: %v", r)
+			ctxlog.Errorf(ctx, "panic occurred: %v", r)
 			debug.PrintStack()
 			err = status.Errorf(codes.Internal, "panic %v", r)
 		}

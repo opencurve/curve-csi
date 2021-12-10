@@ -1,0 +1,144 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: csi-curve-plugin-provisioner
+  namespace: csi-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: csi-curve-plugin-provisioner
+  template:
+    metadata:
+      labels:
+        app: csi-curve-plugin-provisioner
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - csi-curve-plugin-provisioner
+            topologyKey: kubernetes.io/hostname
+      serviceAccountName: curve-csi-provisioner
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: csi-provisioner
+        image: k8s.gcr.io/sig-storage/csi-provisioner:v2.2.2
+        args:
+        - "--csi-address=$(ADDRESS)"
+        - "--v=5"
+        - "--timeout=150s"
+        - "--leader-election=true"
+        - "--retry-interval-start=500ms"
+        - "--feature-gates=Topology=false"
+        env:
+        - name: ADDRESS
+          value: unix:///csi/csi-provisioner.sock
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+      - name: csi-attacher
+        image: k8s.gcr.io/sig-storage/csi-attacher:v3.2.1
+        args:
+        - "--v=5"
+        - "--csi-address=$(ADDRESS)"
+        - "--leader-election=true"
+        - "--retry-interval-start=500ms"
+        env:
+        - name: ADDRESS
+          value: /csi/csi-provisioner.sock
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+      - name: csi-resizer
+        image: k8s.gcr.io/sig-storage/csi-resizer:v1.2.0
+        args:
+        - "--csi-address=$(ADDRESS)"
+        - "--v=5"
+        - "--timeout=150s"
+        - "--leader-election"
+        - "--retry-interval-start=500ms"
+        - "--handle-volume-inuse-error=false"
+        env:
+        - name: ADDRESS
+          value: /csi/csi-provisioner.sock
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+      - name: csi-snapshotter
+        image: k8s.gcr.io/sig-storage/csi-snapshotter:v3.0.3
+        args:
+          - "--csi-address=$(ADDRESS)"
+          - "--v=5"
+          - "--timeout=150s"
+          - "--leader-election=true"
+        env:
+        - name: ADDRESS
+          value: unix:///csi/csi-provisioner.sock
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+      - name: csi-curveplugin
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ["SYS_ADMIN"]
+        image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:csi-v1.5.0-rc1
+        args:
+        - --endpoint=$(CSI_ENDPOINT)
+        - --drivername=curve.csi.netease.com
+        - --nodeid=$(NODE_ID)
+        - --controller-server=true
+        - --debug-port=9696
+        - --logtostderr=false
+        - --log_dir=/var/log/csi-curveplugin
+        - -v=4
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CSI_ENDPOINT
+          value: unix:///csi/csi-provisioner.sock
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+        - mountPath: /etc/localtime
+          name: localtime
+        - mountPath: /var/log/csi-curveplugin
+          name: log
+      volumes:
+      - name: socket-dir
+        emptyDir:
+          medium: Memory
+      - hostPath:
+          path: /etc/localtime
+        name: localtime
+      - hostPath:
+          path: /var/log/csi-curveplugin-ctrl
+        name: log

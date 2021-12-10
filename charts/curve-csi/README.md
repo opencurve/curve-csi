@@ -7,7 +7,7 @@ The curve-csi chart adds the curve volume support to your k8s cluster.
 Install the chart to your kubernetes cluster:
 
 ```bash
-helm install --namespace "curve-csi-system" --name "curve-csi" ./curve-csi
+helm install --namespace "curve-csi-system" ./curve-csi
 ```
 
 After installation succeeds, you can get a status of Chart:

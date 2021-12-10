@@ -16,18 +16,12 @@ Please refer to [deploy doc](https://github.com/opencurve/curve/blob/master/docs
 #### Using the helm chart
 
 ```bash
-helm install --namespace "curve-csi-system" --name "curve-csi" charts/curve-csi
+helm install --namespace "csi-system" charts/curve-csi
 ```
 
 #### Using the kubernetes manifests
 
-Get the kubernetes server version:
-
-```bash
-kubectl version
-```
-
-Change to the specific `deploy/kubernetes/<version>` directory, create the files:
+Change to the `deploy/manifests/` directory, create the files:
 
 ```bash
 kubectl apply -f ./*.yaml
@@ -95,6 +89,31 @@ spec:
       claimName: curve-test-pvc
 ```
 
+#### Test block volume
+
+```
+## create the pvc and pod:
+kubectl create -f ../examples/block/pvc.yaml
+kubectl create -f ../examples/block/pod.yaml
+
+## waiting for the pod running
+kubectl exec -it csi-curve-test-block bash
+# mkfs.ext4 /dev/block
+# mkdir -p /mnt/data && mount /dev/block /mnt/data
+# cd /mnt/data
+```
+
+#### Test volume expanding
+
+- create the normal pvc and pod
+- increase pvc.spec.resources.requests.storage
+- check the size of mounted path in the container
+
+#### Test snapshot
+
+#### Test volume clone
+
+
 ## Test Using CSC Tool
 
 #### Get csc tool
@@ -138,7 +157,7 @@ $ uuidgen
 fa0c04c9-2e93-487e-8986-1e1625fd8c46
 
 $ csc controller create --endpoint tcp://127.0.0.1:10000 \
-    --lim-bytes 10737418240 \
+    --req-bytes 10737418240 \
     --cap 1,mount,ext4 \
     --params user=k8s \
     volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46

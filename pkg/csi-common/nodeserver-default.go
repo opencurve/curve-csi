@@ -17,15 +17,13 @@ limitations under the License.
 package csicommon
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog"
 
-	"github.com/opencurve/curve-csi/pkg/util"
+	"github.com/opencurve/curve-csi/pkg/util/ctxlog"
 )
 
 // DefaultNodeServer stores driver object
@@ -50,7 +48,7 @@ func (ns *DefaultNodeServer) NodeExpandVolume(ctx context.Context, req *csi.Node
 
 // NodeGetInfo returns node ID
 func (ns *DefaultNodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
-	klog.V(5).Infof(util.Log(ctx, "Using default NodeGetInfo"))
+	ctxlog.V(5).Infof(ctx, "Using default NodeGetInfo")
 	return &csi.NodeGetInfoResponse{
 		NodeId: ns.Driver.nodeID,
 	}, nil
@@ -58,7 +56,7 @@ func (ns *DefaultNodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetIn
 
 // NodeGetCapabilities returns RPC unknow capability
 func (ns *DefaultNodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
-	klog.V(5).Infof(util.Log(ctx, "Using default NodeGetCapabilities"))
+	ctxlog.V(5).Infof(ctx, "Using default NodeGetCapabilities")
 	return &csi.NodeGetCapabilitiesResponse{
 		Capabilities: []*csi.NodeServiceCapability{
 			{
@@ -74,7 +72,7 @@ func (ns *DefaultNodeServer) NodeGetCapabilities(ctx context.Context, req *csi.N
 
 // NodeGetVolumeStats returns volume stats
 func (ns *DefaultNodeServer) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVolumeStatsRequest) (*csi.NodeGetVolumeStatsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, fmt.Sprintf("NodeGetVolumeStats is not yet implemented"))
+	return nil, status.Error(codes.Unimplemented, "NodeGetVolumeStats is not yet implemented")
 }
 
 // ConstructMountOptions returns only unique mount options in slice

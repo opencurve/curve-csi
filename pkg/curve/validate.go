@@ -74,7 +74,8 @@ func (ns *nodeServer) validateNodeStageVolumeRequest(req *csi.NodeStageVolumeReq
 	}
 
 	// validate stagingpath exists
-	if _, err := os.Stat(req.GetStagingTargetPath()); os.IsNotExist(err) {
+	ok := checkDirExists(req.GetStagingTargetPath())
+	if !ok {
 		return status.Error(codes.InvalidArgument, "staging path does not exists on node")
 	}
 
@@ -130,9 +131,14 @@ func (ns *nodeServer) validateNodeExpandVolumeRequest(req *csi.NodeExpandVolumeR
 		return status.Error(codes.InvalidArgument, "volume ID missing in request")
 	}
 
-	if req.GetVolumePath() == "" {
-		return status.Error(codes.InvalidArgument, "volume path missing in request")
+	return nil
+}
+
+// checkDirExists checks directory  exists or not.
+func checkDirExists(p string) bool {
+	if _, err := os.Stat(p); os.IsNotExist(err) {
+		return false
 	}
 
-	return nil
+	return true
 }

@@ -23,56 +23,61 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	volumehelpers "k8s.io/cloud-provider/volume/helpers"
-	"k8s.io/klog"
 
 	csicommon "github.com/opencurve/curve-csi/pkg/csi-common"
 	"github.com/opencurve/curve-csi/pkg/curveservice"
 	"github.com/opencurve/curve-csi/pkg/util"
+	"github.com/opencurve/curve-csi/pkg/util/ctxlog"
 )
 
 type controllerServer struct {
 	*csicommon.DefaultControllerServer
-	volumeLocks *util.VolumeLocks
+
+	volumeLocks       *util.VolumeLocks
+	curveVolumePrefix string
 }
 
 // CreateVolume creates the volume in backend, if it is not already present
 func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
 	if err := cs.validateCreateVolumeRequest(req); err != nil {
-		klog.Errorf(util.Log(ctx, err.Error()))
+		ctxlog.Errorf(ctx, err.Error())
 		return nil, err
 	}
 
 	reqName := req.GetName()
 	if acquired := cs.volumeLocks.TryAcquire(reqName); !acquired {
-		klog.Infof(util.Log(ctx, util.VolumeOperationAlreadyExistsFmt), reqName)
+		ctxlog.Infof(ctx, util.VolumeOperationAlreadyExistsFmt, reqName)
 		return nil, status.Errorf(codes.Aborted, util.VolumeOperationAlreadyExistsFmt, reqName)
 	}
 	defer cs.volumeLocks.Release(reqName)
 
-	klog.Infof(util.Log(ctx, "starting creating volume requestNamed %s"), reqName)
+	ctxlog.Infof(ctx, "starting creating volume requestNamed %s", reqName)
 	// get volume options
-	volOptions, err := newVolumeOptions(req)
+	volOptions, err := newVolumeOptions(req, cs.curveVolumePrefix)
 	if err != nil {
-		klog.Errorf(util.Log(ctx, "failed to new volume options, err: %v"), err)
+		ctxlog.ErrorS(ctx, err, "failed to new volume options")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	// compose csi volume id
 	csiVolumeId, err := composeCSIID(volOptions.user, volOptions.volName)
 	if err != nil {
-		klog.Errorf(util.Log(ctx, "failed to composeCSIID, err: %v"), err)
+		ctxlog.ErrorS(ctx, err, "failed to composeCSIID")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	ctxlog.V(5).Infof(ctx, "build volumeOptions: %+v with csiVolumeId: %v", volOptions, csiVolumeId)
+
+	// TODO: support volume clone and snapshot restore
 
 	// verify the volume already exists
 	curveVol := curveservice.NewCurveVolume(volOptions.user, volOptions.volName, volOptions.sizeGiB)
 	volDetail, err := curveVol.Stat(ctx)
 	if err != nil {
-		klog.Errorf(util.Log(ctx, "failed to get volDetail, err: %v"), err)
+		ctxlog.ErrorS(ctx, err, "failed to get volDetail")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if volDetail.FileStatus == curveservice.CurveVolumeStatusCreated {
-		klog.V(4).Infof(util.Log(ctx, "the volume %s already created"), reqName)
+		ctxlog.V(4).Infof(ctx, "the volume %s already created", reqName)
 		return &csi.CreateVolumeResponse{
 			Volume: &csi.Volume{
 				VolumeId:      csiVolumeId,
@@ -84,11 +89,11 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 
 	// create volume
 	if err := curveVol.Create(ctx); err != nil {
-		klog.Errorf(util.Log(ctx, "failed to create volume, err: %v"), err)
+		ctxlog.ErrorS(ctx, err, "failed to create volume")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	klog.Infof(util.Log(ctx, "successfully created volume named %s for request name %s"), curveVol.FileName, reqName)
+	ctxlog.Infof(ctx, "successfully created volume named %s for request name %s", curveVol.FileName, reqName)
 	return &csi.CreateVolumeResponse{
 		Volume: &csi.Volume{
 			VolumeId:      csiVolumeId,
@@ -101,45 +106,45 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 // DeleteVolume deletes the volume in backend and its reservation
 func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
 	if err := cs.validateDeleteVolumeRequest(req); err != nil {
-		klog.Errorf(util.Log(ctx, "DeleteVolumeRequest validation failed: %v"), err)
+		ctxlog.ErrorS(ctx, err, "DeleteVolumeRequest validation failed")
 		return nil, err
 	}
 
 	volumeId := req.GetVolumeId()
 	// lock out parallel delete operations
 	if acquired := cs.volumeLocks.TryAcquire(volumeId); !acquired {
-		klog.Infof(util.Log(ctx, util.VolumeOperationAlreadyExistsFmt), volumeId)
+		ctxlog.Infof(ctx, util.VolumeOperationAlreadyExistsFmt, volumeId)
 		return nil, status.Errorf(codes.Aborted, util.VolumeOperationAlreadyExistsFmt, volumeId)
 	}
 	defer cs.volumeLocks.Release(volumeId)
 
-	klog.Infof("starting deleting volume id %s", volumeId)
+	ctxlog.Infof(ctx, "starting deleting volume id %s", volumeId)
 
-	volOptions, err := newVolumeOptionsFromVolID(volumeId)
+	volOptions, err := newVolumeOptionsFromVolID(volumeId, cs.curveVolumePrefix)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// lock out parallel delete and create requests against the same volume name
 	if acquired := cs.volumeLocks.TryAcquire(volOptions.reqName); !acquired {
-		klog.Infof(util.Log(ctx, util.VolumeOperationAlreadyExistsFmt), volumeId)
+		ctxlog.Infof(ctx, util.VolumeOperationAlreadyExistsFmt, volumeId)
 		return nil, status.Errorf(codes.Aborted, util.VolumeOperationAlreadyExistsFmt, volOptions.reqName)
 	}
 	defer cs.volumeLocks.Release(volOptions.reqName)
 
 	curveVol := curveservice.NewCurveVolume(volOptions.user, volOptions.volName, volOptions.sizeGiB)
 	if err := curveVol.Delete(ctx); err != nil {
-		klog.Errorf(util.Log(ctx, "failed to delete volume %s: %v"), volumeId, err)
+		ctxlog.ErrorS(ctx, err, "failed to delete volume", "volumeId", volumeId)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	klog.Infof(util.Log(ctx, "successfully deleted volume %s"), volumeId)
+	ctxlog.Infof(ctx, "successfully deleted volume %s", volumeId)
 	return &csi.DeleteVolumeResponse{}, nil
 }
 
 func (cs *controllerServer) ControllerExpandVolume(ctx context.Context, req *csi.ControllerExpandVolumeRequest) (*csi.ControllerExpandVolumeResponse, error) {
 	if err := cs.validateExpandVolumeRequest(req); err != nil {
-		klog.Errorf(util.Log(ctx, "ExpandVolumeRequest validation failed: %v"), err)
+		ctxlog.ErrorS(ctx, err, "ExpandVolumeRequest validation failed")
 		return nil, err
 	}
 	reqSizeGiB, err := roundUpToGiBInt(req.GetCapacityRange().GetRequiredBytes())
@@ -151,19 +156,19 @@ func (cs *controllerServer) ControllerExpandVolume(ctx context.Context, req *csi
 
 	// lock out parallel requests against the same volume ID
 	if acquired := cs.volumeLocks.TryAcquire(volumeId); !acquired {
-		klog.Infof(util.Log(ctx, util.VolumeOperationAlreadyExistsFmt), volumeId)
+		ctxlog.Infof(ctx, util.VolumeOperationAlreadyExistsFmt, volumeId)
 		return nil, status.Errorf(codes.Aborted, util.VolumeOperationAlreadyExistsFmt, volumeId)
 	}
 	defer cs.volumeLocks.Release(volumeId)
 
-	volOptions, err := newVolumeOptionsFromVolID(volumeId)
+	volOptions, err := newVolumeOptionsFromVolID(volumeId, cs.curveVolumePrefix)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// lock out parallel delete/create/expand requests against the same volume name
 	if acquired := cs.volumeLocks.TryAcquire(volOptions.reqName); !acquired {
-		klog.Infof(util.Log(ctx, util.VolumeOperationAlreadyExistsFmt), volumeId)
+		ctxlog.Infof(ctx, util.VolumeOperationAlreadyExistsFmt, volumeId)
 		return nil, status.Errorf(codes.Aborted, util.VolumeOperationAlreadyExistsFmt, volOptions.reqName)
 	}
 	defer cs.volumeLocks.Release(volOptions.reqName)
@@ -178,7 +183,7 @@ func (cs *controllerServer) ControllerExpandVolume(ctx context.Context, req *csi
 		return nil, status.Errorf(codes.Internal, "the curve volume %s not exists", volOptions.volName)
 	}
 
-	klog.Infof(util.Log(ctx, "volume %s(status %s) size is %dGiB, reqSize is round up to %dGiB"),
+	ctxlog.Infof(ctx, "volume %s(status %s) size is %dGiB, reqSize is round up to %dGiB",
 		volDetail.FileName, volDetail.FileStatus, volDetail.LengthGiB, reqSizeGiB)
 	if reqSizeGiB <= volDetail.LengthGiB {
 		return &csi.ControllerExpandVolumeResponse{
@@ -188,11 +193,11 @@ func (cs *controllerServer) ControllerExpandVolume(ctx context.Context, req *csi
 	}
 
 	if err := curveVol.Extend(ctx, reqSizeGiB); err != nil {
-		klog.Errorf(util.Log(ctx, "failed to delete volume %s: %v"), volumeId, err)
+		ctxlog.ErrorS(ctx, err, "failed to delete volume", "volumeId", volumeId)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	klog.Infof(util.Log(ctx, "successfully extend volume %s size to %dGiB"), volDetail.FileName, reqSizeGiB)
+	ctxlog.Infof(ctx, "successfully extend volume %s size to %dGiB", volDetail.FileName, reqSizeGiB)
 	return &csi.ControllerExpandVolumeResponse{
 		CapacityBytes:         int64(reqSizeGiB * volumehelpers.GiB),
 		NodeExpansionRequired: true,

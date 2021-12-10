@@ -17,20 +17,19 @@ limitations under the License.
 package csicommon
 
 import (
-	"fmt"
-
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 type CSIDriver struct {
-	name    string
-	nodeID  string
-	version string
-	cap     []*csi.ControllerServiceCapability
-	vc      []*csi.VolumeCapability_AccessMode
+	name         string
+	nodeID       string
+	version      string
+	topology     map[string]string
+	capabilities []*csi.ControllerServiceCapability
+	vc           []*csi.VolumeCapability_AccessMode
 }
 
 // Creates a NewCSIDriver object. Assumes vendor version is equal to driver version &
@@ -52,9 +51,10 @@ func NewCSIDriver(name, v, nodeID string) *CSIDriver {
 	}
 
 	driver := CSIDriver{
-		name:    name,
-		version: v,
-		nodeID:  nodeID,
+		name:     name,
+		version:  v,
+		nodeID:   nodeID,
+		topology: make(map[string]string),
 	}
 
 	return &driver
@@ -67,12 +67,12 @@ func (d *CSIDriver) ValidateControllerServiceRequest(c csi.ControllerServiceCapa
 		return nil
 	}
 
-	for _, cap := range d.cap {
+	for _, cap := range d.capabilities {
 		if c == cap.GetRpc().GetType() {
 			return nil
 		}
 	}
-	return status.Error(codes.InvalidArgument, fmt.Sprintf("%s", c))
+	return status.Error(codes.InvalidArgument, string(c))
 }
 
 // AddControllerServiceCapabilities stores the controller capabilities
@@ -85,7 +85,7 @@ func (d *CSIDriver) AddControllerServiceCapabilities(cl []csi.ControllerServiceC
 		csc = append(csc, NewControllerServiceCapability(c))
 	}
 
-	d.cap = csc
+	d.capabilities = csc
 }
 
 // AddVolumeCapabilityAccessModes stores volume access modes

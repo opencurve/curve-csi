@@ -22,7 +22,7 @@ import (
 	"strconv"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"k8s.io/utils/mount"
 
 	"github.com/opencurve/curve-csi/cmd/options"
@@ -50,20 +50,22 @@ func NewIdentityServer(d *csicommon.CSIDriver) *identityServer {
 	}
 }
 
-func NewControllerServer(d *csicommon.CSIDriver) *controllerServer {
+func NewControllerServer(d *csicommon.CSIDriver, curveVolumePrefix string) *controllerServer {
 	return &controllerServer{
 		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
 		volumeLocks:             util.NewVolumeLocks(),
+		curveVolumePrefix:       curveVolumePrefix,
 	}
 }
 
-func NewNodeServer(d *csicommon.CSIDriver) *nodeServer {
+func NewNodeServer(d *csicommon.CSIDriver, curveVolumePrefix string) *nodeServer {
 	curveservice.InitCurveNbd()
 	mounter := mount.New("")
 	return &nodeServer{
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d),
 		mounter:           mounter,
 		volumeLocks:       util.NewVolumeLocks(),
+		curveVolumePrefix: curveVolumePrefix,
 	}
 }
 
@@ -88,6 +90,7 @@ func (c *curveDriver) Run(curveConf options.CurveConf) {
 	if curveConf.IsControllerServer || !curveConf.IsNodeServer {
 		c.driver.AddControllerServiceCapabilities([]csi.ControllerServiceCapability_RPC_Type{
 			csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
+			csi.ControllerServiceCapability_RPC_CREATE_DELETE_SNAPSHOT,
 			csi.ControllerServiceCapability_RPC_CLONE_VOLUME,
 			csi.ControllerServiceCapability_RPC_EXPAND_VOLUME,
 		})
@@ -99,15 +102,15 @@ func (c *curveDriver) Run(curveConf options.CurveConf) {
 
 	c.ids = NewIdentityServer(c.driver)
 	if curveConf.IsControllerServer {
-		c.cs = NewControllerServer(c.driver)
+		c.cs = NewControllerServer(c.driver, curveConf.CurveVolumePrefix)
 	}
 	if curveConf.IsNodeServer {
-		c.ns = NewNodeServer(c.driver)
+		c.ns = NewNodeServer(c.driver, curveConf.CurveVolumePrefix)
 	}
 
 	if !curveConf.IsControllerServer && !curveConf.IsNodeServer {
-		c.cs = NewControllerServer(c.driver)
-		c.ns = NewNodeServer(c.driver)
+		c.cs = NewControllerServer(c.driver, curveConf.CurveVolumePrefix)
+		c.ns = NewNodeServer(c.driver, curveConf.CurveVolumePrefix)
 	}
 
 	s := csicommon.NewNonBlockingGRPCServer()
@@ -116,6 +119,10 @@ func (c *curveDriver) Run(curveConf options.CurveConf) {
 	// start debug server
 	if curveConf.DebugPort > 0 {
 		go listenAndServeDebugger(curveConf.DebugPort)
+	}
+	if curveConf.EnableProfiling {
+		klog.Infof("Registering profiling handler")
+		go util.EnableProfiling()
 	}
 
 	s.Wait()

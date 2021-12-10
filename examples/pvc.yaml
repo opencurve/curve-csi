@@ -7,5 +7,5 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
-  storageClassName: csi-curve-sc
+      storage: 20Gi
+  storageClassName: curve
