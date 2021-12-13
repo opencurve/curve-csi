@@ -5,6 +5,7 @@ metadata:
   name: curve
 parameters:
   user: k8s
+  cloneLazy: "true"
 provisioner: curve.csi.netease.com
 reclaimPolicy: Delete
 volumeBindingMode: Immediate

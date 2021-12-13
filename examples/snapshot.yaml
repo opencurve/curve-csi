@@ -1,0 +1,8 @@
+apiVersion: snapshot.storage.k8s.io/v1beta1
+kind: VolumeSnapshot
+metadata:
+  name: curve-snapshot-test
+spec:
+  volumeSnapshotClassName: curve-snapclass
+  source:
+    persistentVolumeClaimName: curve-test-pvc

@@ -50,22 +50,22 @@ func NewIdentityServer(d *csicommon.CSIDriver) *identityServer {
 	}
 }
 
-func NewControllerServer(d *csicommon.CSIDriver, curveVolumePrefix string) *controllerServer {
+func NewControllerServer(d *csicommon.CSIDriver, snapshotServer string) *controllerServer {
 	return &controllerServer{
 		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
 		volumeLocks:             util.NewVolumeLocks(),
-		curveVolumePrefix:       curveVolumePrefix,
+		snapshotLocks:           util.NewVolumeLocks(),
+		snapshotServer:          snapshotServer,
 	}
 }
 
-func NewNodeServer(d *csicommon.CSIDriver, curveVolumePrefix string) *nodeServer {
+func NewNodeServer(d *csicommon.CSIDriver) *nodeServer {
 	curveservice.InitCurveNbd()
 	mounter := mount.New("")
 	return &nodeServer{
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d),
 		mounter:           mounter,
 		volumeLocks:       util.NewVolumeLocks(),
-		curveVolumePrefix: curveVolumePrefix,
 	}
 }
 
@@ -102,15 +102,15 @@ func (c *curveDriver) Run(curveConf options.CurveConf) {
 
 	c.ids = NewIdentityServer(c.driver)
 	if curveConf.IsControllerServer {
-		c.cs = NewControllerServer(c.driver, curveConf.CurveVolumePrefix)
+		c.cs = NewControllerServer(c.driver, curveConf.SnapshotServer)
 	}
 	if curveConf.IsNodeServer {
-		c.ns = NewNodeServer(c.driver, curveConf.CurveVolumePrefix)
+		c.ns = NewNodeServer(c.driver)
 	}
 
 	if !curveConf.IsControllerServer && !curveConf.IsNodeServer {
-		c.cs = NewControllerServer(c.driver, curveConf.CurveVolumePrefix)
-		c.ns = NewNodeServer(c.driver, curveConf.CurveVolumePrefix)
+		c.cs = NewControllerServer(c.driver, curveConf.SnapshotServer)
+		c.ns = NewNodeServer(c.driver)
 	}
 
 	s := csicommon.NewNonBlockingGRPCServer()

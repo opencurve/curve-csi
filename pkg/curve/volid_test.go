@@ -24,7 +24,7 @@ import (
 
 func TestComposeCSIID(t *testing.T) {
 	user := "k8s"
-	volName := csiDefaultVolNamingPrefix + "pvc-eeafeeb3-7a35-11ea-934a-fa163e28f309"
+	volName := csiVolNamingPrefix + "pvc-eeafeeb3-7a35-11ea-934a-fa163e28f309"
 
 	id, err := composeCSIID(user, volName)
 	assert.NoError(t, err)

@@ -25,6 +25,9 @@ import (
 const (
 	// VolumeOperationAlreadyExistsFmt string format to return for concerrent operation
 	VolumeOperationAlreadyExistsFmt = "an operation with the given Volume ID %s already exists"
+
+	// VolumeOperationAlreadyExistsFmt string format to return for concerrent operation
+	SnapshotOperationAlreadyExistsFmt = "an operation with the given Snapshot ID %s already exists"
 )
 
 // VolumeLocks implements a map with atomic operations. It stores a set of all volume IDs

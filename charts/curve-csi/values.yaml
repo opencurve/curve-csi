@@ -28,6 +28,8 @@ nodeplugin:
 controllerplugin:
   replicas: 2
 
+  snapshotServer: http://127.0.0.1:5555
+
   debug:
     enabled: true
     port: 9696
@@ -66,7 +68,3 @@ controllerplugin:
   tolerations: []
 
   affinity: {}
-
-# common variables
-common:
-  curveVolumeNamingPrefix: ""

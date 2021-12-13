@@ -52,9 +52,6 @@ spec:
         image: "{{ .Values.nodeplugin.plugin.image }}"
         args:
         - --endpoint=$(CSI_ENDPOINT)
-{{- if .Values.common.curveVolumeNamingPrefix }}
-        - "--curve-volume-prefix={{ .Values.common.curveVolumeNamingPrefix }}"
-{{- end }}
         - --drivername=curve.csi.netease.com
         - --nodeid=$(NODE_ID)
 {{- if .Values.nodeplugin.debug.enabled }}

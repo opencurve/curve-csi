@@ -105,6 +105,7 @@ spec:
         - --endpoint=$(CSI_ENDPOINT)
         - --drivername=curve.csi.netease.com
         - --nodeid=$(NODE_ID)
+        - "--snapshot-server=http://127.0.0.1:5555"
         - --controller-server=true
         - --debug-port=9696
         - --logtostderr=false

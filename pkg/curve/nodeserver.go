@@ -37,9 +37,8 @@ import (
 type nodeServer struct {
 	*csicommon.DefaultNodeServer
 
-	mounter           mount.Interface
-	volumeLocks       *util.VolumeLocks
-	curveVolumePrefix string
+	mounter     mount.Interface
+	volumeLocks *util.VolumeLocks
 }
 
 func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
@@ -107,7 +106,7 @@ func (ns *nodeServer) attachDevice(ctx context.Context, req *csi.NodeStageVolume
 		}
 	}
 
-	volOptions, err := newVolumeOptionsFromVolID(req.GetVolumeId(), ns.curveVolumePrefix)
+	volOptions, err := newVolumeOptionsFromVolID(req.GetVolumeId())
 	if err != nil {
 		return "", status.Error(codes.Internal, err.Error())
 	}
@@ -175,6 +174,12 @@ func (ns *nodeServer) mountVolumeToStagePath(ctx context.Context, req *csi.NodeS
 		err = diskMounter.Mount(devicePath, stagingPath, fsType, opt)
 	} else {
 		err = diskMounter.FormatAndMount(devicePath, stagingPath, fsType, opt)
+		// resize2fs
+		resizer := util.NewResizeFs(diskMounter)
+		ok, err := resizer.Resize(ctx, devicePath, stagingPath)
+		if !ok {
+			ctxlog.Warningf(ctx, "resize failed on device %v path %v, err: %v", devicePath, stagingPath, err)
+		}
 	}
 	if err != nil {
 		ctxlog.ErrorS(ctx, err, "failed to mount device to staging path", "devicePath", devicePath, "stagingPath", stagingPath, "volumeId", req.GetVolumeId())
@@ -344,7 +349,7 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 	}
 
 	// unmap
-	volOptions, err := newVolumeOptionsFromVolID(volumeId, ns.curveVolumePrefix)
+	volOptions, err := newVolumeOptionsFromVolID(volumeId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -380,14 +385,24 @@ func (ns *nodeServer) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandV
 		// having the staging_target_path information
 		volumePath = req.GetVolumePath()
 	}
-	if volumePath == "" {
-		return nil, status.Error(codes.InvalidArgument, "volume path must be provided")
+
+	// check path exists
+	if _, err := os.Stat(volumePath); err != nil {
+		if os.IsNotExist(err) {
+			return nil, status.Errorf(codes.NotFound, "path %v not exists", volumePath)
+		}
+		return nil, status.Errorf(codes.Internal, "can not stat path %v", volumePath)
+	}
+
+	if req.GetVolumeCapability().GetBlock() != nil {
+		return &csi.NodeExpandVolumeResponse{}, nil
 	}
 
 	// get device path
+	volumePath += "/" + volumeId
 	devicePath, _, err := mount.GetDeviceNameFromMount(ns.mounter, volumePath)
 	if err != nil {
-		return nil, fmt.Errorf("can not get device from mount, err: %v", err)
+		return nil, status.Errorf(codes.Internal, "can not get device from mount, err: %v", err)
 	}
 	if devicePath == "" {
 		ctxlog.V(4).Infof(ctx, "the path %s is not mounted, ignore resizing", volumePath)
@@ -407,11 +422,11 @@ func (ns *nodeServer) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandV
 
 // NodeGetVolumeStats returns volume stats
 func (ns *nodeServer) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVolumeStatsRequest) (*csi.NodeGetVolumeStatsResponse, error) {
-	volumePath := req.GetVolumePath()
-	if volumePath == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "volumePath %v is empty", volumePath)
+	if err := ns.validateNodeGetVolumeStatsRequest(req); err != nil {
+		return nil, err
 	}
 
+	volumePath := req.GetVolumePath()
 	exists, err := utilpath.Exists(utilpath.CheckFollowSymlink, volumePath)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to check whether volumePath exists: %s", err)

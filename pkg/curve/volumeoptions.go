@@ -26,35 +26,51 @@ import (
 )
 
 const (
-	csiDefaultVolNamingPrefix = "csi-vol-"
+	csiVolNamingPrefix = "csi-vol-"
+
+	// max length of curve volume uesr
+	curveUserMaxLen = 30
+	// clone lazy
+	curveCloneDefaultLazy = true
 )
 
 type volumeOptions struct {
-	reqName string
-	volName string
-	sizeGiB int
-	user    string
+	reqName   string
+	volName   string
+	volId     string
+	sizeGiB   int
+	user      string
+	cloneLazy bool
 }
 
-func newVolumeOptions(req *csi.CreateVolumeRequest, curveVolumePrefix string) (*volumeOptions, error) {
+func (vo *volumeOptions) genVolumePath() string {
+	return "/" + vo.user + "/" + vo.volName
+}
+
+func newVolumeOptions(req *csi.CreateVolumeRequest) (*volumeOptions, error) {
 	var (
 		ok  bool
 		err error
 	)
 	opts := &volumeOptions{
 		reqName: req.GetName(),
+		volName: csiVolNamingPrefix + req.GetName(),
 	}
 
-	if curveVolumePrefix != "" {
-		opts.volName = curveVolumePrefix + opts.reqName
-	} else {
-		opts.volName = csiDefaultVolNamingPrefix + opts.reqName
-	}
-
-	volOptions := req.GetParameters()
-	opts.user, ok = volOptions["user"]
+	parameters := req.GetParameters()
+	opts.user, ok = parameters["user"]
 	if !ok {
 		return nil, fmt.Errorf("missing required field: user")
+	}
+	if len(opts.user) == 0 || len(opts.user) > curveUserMaxLen {
+		return nil, fmt.Errorf("length of field user must be 1~%v", curveUserMaxLen)
+	}
+
+	cloneLazy, ok := parameters["cloneLazy"]
+	if ok {
+		opts.cloneLazy = cloneLazy == "true"
+	} else {
+		opts.cloneLazy = curveCloneDefaultLazy
 	}
 
 	// volume size - default is 10GiB
@@ -66,26 +82,26 @@ func newVolumeOptions(req *csi.CreateVolumeRequest, curveVolumePrefix string) (*
 		}
 	}
 
+	opts.volId, err = composeCSIID(opts.user, opts.volName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to composeCSIID: %v", err)
+	}
+
 	return opts, nil
 }
 
-func newVolumeOptionsFromVolID(volumeId string, curveVolumePrefix string) (*volumeOptions, error) {
-	var (
-		volOptions volumeOptions
-		err        error
-	)
-
+func newVolumeOptionsFromVolID(volumeId string) (*volumeOptions, error) {
+	var err error
+	volOptions := &volumeOptions{
+		volId: volumeId,
+	}
 	volOptions.user, volOptions.volName, err = decomposeCSIID(volumeId)
 	if err != nil {
 		return nil, err
 	}
-	volNamingPrefix := curveVolumePrefix
-	if volNamingPrefix == "" {
-		volNamingPrefix = csiDefaultVolNamingPrefix
-	}
-	volOptions.reqName = strings.TrimPrefix(volOptions.volName, volNamingPrefix)
+	volOptions.reqName = strings.TrimPrefix(volOptions.volName, csiVolNamingPrefix)
 
-	return &volOptions, nil
+	return volOptions, nil
 }
 
 func roundUpToGiBInt(sizeBytes int64) (int, error) {
@@ -102,4 +118,14 @@ func roundUpToGiBInt(sizeBytes int64) (int, error) {
 		sizeGiB = 10
 	}
 	return sizeGiB, nil
+}
+
+func parseSnapshotID(snapshotId string) (string, *volumeOptions, error) {
+	snapCurveUUID, volId, err := decomposeSnapshotID(snapshotId)
+	if err != nil {
+		return "", nil, err
+	}
+	volOptions, err := newVolumeOptionsFromVolID(volId)
+
+	return snapCurveUUID, volOptions, err
 }

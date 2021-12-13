@@ -55,17 +55,18 @@ func GetDeviceStats(path string) (*DeviceStats, error) {
 		return nil, fmt.Errorf("failed to statfs() %q: %s", path, err)
 	}
 
-	return &DeviceStats{
+	deviceStats := &DeviceStats{
 		Block: false,
 
-		AvailableBytes: int64(statfs.Bavail) * statfs.Bsize,
-		TotalBytes:     int64(statfs.Blocks) * statfs.Bsize,
-		UsedBytes:      (int64(statfs.Blocks) - int64(statfs.Bfree)) * statfs.Bsize,
+		AvailableBytes: int64(statfs.Bavail) * int64(statfs.Bsize),
+		TotalBytes:     int64(statfs.Blocks) * int64(statfs.Bsize),
 
 		AvailableInodes: int64(statfs.Ffree),
 		TotalInodes:     int64(statfs.Files),
-		UsedInodes:      int64(statfs.Files) - int64(statfs.Ffree),
-	}, nil
+	}
+	deviceStats.UsedBytes = deviceStats.TotalBytes - deviceStats.AvailableBytes
+	deviceStats.UsedInodes = deviceStats.TotalInodes - deviceStats.AvailableInodes
+	return deviceStats, nil
 }
 
 func isBlockDevice(path string) (bool, error) {
