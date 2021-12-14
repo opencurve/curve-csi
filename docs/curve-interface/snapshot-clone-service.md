@@ -1,5 +1,17 @@
 # Curve Snapshot/Clone Interface
 
+- [Create a snapshot](#create-a-snapshot)
+- [Delete a snapshot](#delete-a-snapshot)
+- [Cancel a snapshot](#cancel-a-snapshot)
+- [Query the snapshot information](#query-the-snapshot-information)
+- [Clone](#clone)
+- [Volume recover from a snapshot](#volume-recover-from-a-snapshot)
+- [Flatten](#flatten)
+- [Query the information of the specific clone or recover task](#query-the-information-of-the-specific-clone-or-recover-task)
+- [Clean a clone or recover task](#clean-a-clone-or-recover-task)
+- [Code Comparison](#code-comparison)
+
+
 ## Create a snapshot
 
 | Method | Url |
@@ -209,7 +221,7 @@ Content-Length: xxx
 }
 ```
 
-## Clone 
+## Clone
 
 | Method | Url |
 | --- | --- |
@@ -303,7 +315,7 @@ Content-Length: xxx
 }
 ```
 
-## Flatten: recover lazy-cloned volume 
+## Flatten
 
 | Method | Url |
 | --- | --- |
@@ -346,7 +358,7 @@ Content-Length: xxx
 }
 ```
 
-## Query the information of the specific clone/recover task
+## Query the information of the specific clone or recover task
 
 Get all tasks of the specific user, you can limit with:
 
@@ -424,7 +436,7 @@ Content-Length: xxx
 }
 ```
 
-## Clean a clone/recover task
+## Clean a clone or recover task
 
 Clean the clone/recover task. Delete the temporary cloned file in curvefs server if the task has been failed, otherwise delete the task only.
 
@@ -469,7 +481,7 @@ Content-Length: xxx
 }
 ```
 
-##  Code Comparison
+## Code Comparison
 
 |Code |Message |	HTTP Status Code| Description |
 | --- | --- | --- | --- |

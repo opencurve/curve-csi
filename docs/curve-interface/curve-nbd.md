@@ -2,6 +2,11 @@
 
 Map/unmap the curve device.
 
+- [Usage](#usage)
+- [Map](#map)
+- [List mapped](#list-mapped)
+- [Unmap](#unmap)
+
 ### Usage
 
 ```

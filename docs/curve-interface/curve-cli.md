@@ -1,5 +1,14 @@
 # Curve CLI
 
+- [Create a directory](#create-a-directory)
+- [Delete a directory](#delete-a-directory)
+- [Create a volume](#create-a-volume)
+- [Extend a volume](#extend-a-volume)
+- [Get the volume information](#get-the-volume-information)
+- [List the volumes in a directory](#list-the-volumes-in-a-directory)
+- [Delete a volume](#delete-a-volume)
+- [Code Comparison](#code-comparison)
+
 ### Create a directory
 
 `curve mkdir [-h] --user USER --dirname DIRNAME`
