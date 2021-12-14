@@ -44,6 +44,10 @@ func (cs *controllerServer) validateDeleteVolumeRequest(req *csi.DeleteVolumeReq
 		return err
 	}
 
+	if req.GetVolumeId() == "" {
+		return status.Error(codes.InvalidArgument, "volume Id cannot be empty")
+	}
+
 	return nil
 }
 
@@ -52,9 +56,40 @@ func (cs *controllerServer) validateExpandVolumeRequest(req *csi.ControllerExpan
 		return err
 	}
 
-	capRange := req.GetCapacityRange()
-	if capRange == nil {
+	if req.GetVolumeId() == "" {
+		return status.Error(codes.InvalidArgument, "volume Id cannot be empty")
+	}
+
+	if req.GetCapacityRange() == nil {
 		return status.Error(codes.InvalidArgument, "capacityRange cannot be empty")
+	}
+
+	return nil
+}
+
+func (cs *controllerServer) validateSnapshotReq(req *csi.CreateSnapshotRequest) error {
+	if err := cs.Driver.ValidateControllerServiceRequest(csi.ControllerServiceCapability_RPC_CREATE_DELETE_SNAPSHOT); err != nil {
+		return err
+	}
+
+	// Check sanity of request Snapshot Name, Source Volume Id
+	if req.Name == "" {
+		return status.Error(codes.InvalidArgument, "snapshot Name cannot be empty")
+	}
+	if req.SourceVolumeId == "" {
+		return status.Error(codes.InvalidArgument, "source Volume ID cannot be empty")
+	}
+
+	return nil
+}
+
+func (cs *controllerServer) validateDeleteSnapshotReq(req *csi.DeleteSnapshotRequest) error {
+	if err := cs.Driver.ValidateControllerServiceRequest(csi.ControllerServiceCapability_RPC_CREATE_DELETE_SNAPSHOT); err != nil {
+		return err
+	}
+
+	if req.GetSnapshotId() == "" {
+		return status.Error(codes.InvalidArgument, "snapshot ID cannot be empty")
 	}
 
 	return nil
@@ -131,6 +166,20 @@ func (ns *nodeServer) validateNodeExpandVolumeRequest(req *csi.NodeExpandVolumeR
 		return status.Error(codes.InvalidArgument, "volume ID missing in request")
 	}
 
+	if req.GetStagingTargetPath() == "" && req.GetVolumePath() == "" {
+		return status.Error(codes.InvalidArgument, "volume path must be provided")
+	}
+
+	return nil
+}
+
+func (ns *nodeServer) validateNodeGetVolumeStatsRequest(req *csi.NodeGetVolumeStatsRequest) error {
+	if req.GetVolumeId() == "" {
+		return status.Error(codes.InvalidArgument, "volume ID missing in request")
+	}
+	if req.GetVolumePath() == "" {
+		return status.Error(codes.InvalidArgument, "volume Path missing in request")
+	}
 	return nil
 }
 

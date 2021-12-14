@@ -48,8 +48,8 @@ func init() {
 	flag.BoolVar(&curveConf.IsNodeServer, "node-server", false, "start curve-csi node server")
 	flag.BoolVar(&curveConf.IsControllerServer, "controller-server", false, "start curve-csi controller server")
 
-	// curve volume name prefix
-	flag.StringVar(&curveConf.CurveVolumePrefix, "curve-volume-prefix", "csi-vol-", "curve volume name prefix")
+	// curve snashot/clone server
+	flag.StringVar(&curveConf.SnapshotServer, "snapshot-server", "http://127.0.0.1:5555", "curve snapshot/clone http server address, set empty to disable snapshot")
 
 	// debug
 	flag.IntVar(&curveConf.DebugPort, "debug-port", 0, "debug port, set 0 to disable")

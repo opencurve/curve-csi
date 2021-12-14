@@ -40,6 +40,8 @@ const (
 	CurveVolumeStatusExist         CurveVolumeStatus = "kFileExists"
 	CurveVolumeStatusCreated       CurveVolumeStatus = "Created"
 	CurveVolumeStatusOwnerAuthFail CurveVolumeStatus = "kOwnerAuthFail"
+	CurveVolumeStatusClonedLazy    CurveVolumeStatus = "CloneMetaInstalled"
+	CurveVolumeStatusBeingCloned   CurveVolumeStatus = "BeingCloned"
 	CurveVolumeStatusUnknown       CurveVolumeStatus = "Unknown"
 )
 
@@ -74,9 +76,7 @@ func (cv *CurveVolume) Stat(ctx context.Context) (*CurveVolumeDetail, error) {
 
 	ctxlog.Warningf(ctx, "[curve] failed to stat the file %s, err: %v, output: %v", cv.FilePath, err, outputStr)
 	if strings.Contains(outputStr, fmt.Sprintf(retFailFormat, retNotExist)) {
-		return &CurveVolumeDetail{
-			FileStatus: CurveVolumeStatusNotExist,
-		}, nil
+		return nil, util.NewNotFoundErr()
 	}
 
 	return nil, fmt.Errorf("can not run curve %v, err: %v, output: %v", args, err, outputStr)

@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	runtime_pprof "runtime/pprof"
+	"strings"
 
 	"k8s.io/klog/v2"
 )
@@ -78,4 +79,48 @@ func EnableProfiling() {
 func addPath(name string, handler http.Handler) {
 	http.Handle(name, handler)
 	klog.V(4).Infof("DEBUG: registered profiling handler on /debug/pprof/%s", name)
+}
+
+func HttpGet(reqURL string, queryMap map[string]string) (int, []byte, error) {
+	req, err := http.NewRequest(http.MethodGet, reqURL, nil)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	// set http header
+	header := http.Header{}
+	header.Add("Content-Type", "application/json")
+	header.Add("Accept", "application/json")
+	req.Header = header
+
+	// TODO: now the snapshot server can not recognize URL encode
+	req.URL.RawQuery = buildRawQuery(queryMap)
+
+	klog.V(6).Infof("Request: %+v", req)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return -1, nil, err
+	}
+	klog.V(6).Infof("Response: %+v", *resp)
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return resp.StatusCode, nil, err
+	}
+	klog.V(7).Infof("Response data: %+v", string(data))
+	return resp.StatusCode, data, nil
+}
+
+func buildRawQuery(queryMap map[string]string) string {
+	var buf strings.Builder
+	for k, v := range queryMap {
+		if buf.Len() > 0 {
+			buf.WriteByte('&')
+		}
+		buf.WriteString(k)
+		buf.WriteByte('=')
+		buf.WriteString(v)
+	}
+	return buf.String()
 }

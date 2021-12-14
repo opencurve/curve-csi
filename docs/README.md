@@ -2,6 +2,21 @@
 
 This document provides more detail about curve-csi driver.
 
+- [Deploy](#deploy)
+  - [Requirements](#requirements)
+  - [Using the helm chart](#using-the-helm-chart)
+  - [Using the kubernetes manifests](#using-the-kubernetes-manifests)
+- [Debug](#debug)
+- [Examples](#examples)
+  - [Create StorageClass](#create-storageclass)
+  - [Create PersistentVolumeClaim](#create-persistentvolumeclaim)
+  - [Create Test Pod](#create-test-pod)
+  - [Test block volume](#test-block-volume)
+  - [Test volume expanding](#test-volume-expanding)
+  - [Test snapshot](#test-snapshot)
+  - [Test volume clone](#test-volume-clone)
+- [Test Using CSC Tool](#test-using-csc-tool)
+
 ## Deploy
 
 #### Requirements
@@ -36,7 +51,7 @@ and call:
 curl -XPUT http://127.0.0.1:<debugPort>/debug/flags/v -d '5'
 ```
 
-## Example
+## Examples
 
 #### Create StorageClass
 
@@ -93,8 +108,8 @@ spec:
 
 ```
 ## create the pvc and pod:
-kubectl create -f ../examples/block/pvc.yaml
-kubectl create -f ../examples/block/pod.yaml
+kubectl create -f ../examples/pvc-block.yaml
+kubectl create -f ../examples/pod-block.yaml
 
 ## waiting for the pod running
 kubectl exec -it csi-curve-test-block bash
@@ -111,8 +126,23 @@ kubectl exec -it csi-curve-test-block bash
 
 #### Test snapshot
 
+Prerequisite: [install snapshot-controller](https://kubernetes-csi.github.io/docs/snapshot-controller.html)
+
+
+Create snapshot:
+
+```
+kubectl create -f ../examples/snapshotclass.yaml
+kubectl create -f ../examples/snapshot.yaml
+```
+
 #### Test volume clone
 
+```
+kubectl create -f ../examples/pvc.yaml
+kubectl create -f ../examples/pvc-clone.yaml
+kubectl create -f ../examples/pvc-restore.yaml
+```
 
 ## Test Using CSC Tool
 
@@ -164,6 +194,8 @@ $ csc controller create --endpoint tcp://127.0.0.1:10000 \
 "0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46"  10737418240     "user"="k8s"
 ```
 
+If the volume is block type, set: `--cap 5,1`
+
 Check:
 
 ```text
@@ -190,6 +222,8 @@ $ csc node stage --endpoint tcp://127.0.0.1:10000 \
 0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 ```
 
+If the volume is block type, set: `--cap 5,1`
+
 Check:
 
 ```text
@@ -197,9 +231,9 @@ $ sudo curve-nbd list-mapped
 id    image                                                      device
 97297 cbd:k8s//k8s/pvc-ce482926-91d8-11ea-bf6e-fa163e23ce53_k8s_ /dev/nbd0
 
-$ sudo findmnt /mnt/test-csi/volume-globalmount
+$ sudo findmnt /mnt/test-csi/volume-globalmount/0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 TARGET                          SOURCE    FSTYPE OPTIONS
-/mnt/test-csi/volume-globalmount /dev/nbd0 ext4   rw,relatime,data=ordered
+/mnt/test-csi/volume-globalmount/0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46 /dev/nbd0 ext4   rw,relatime,data=ordered
 ```
 
 #### NodePublish a volume
@@ -253,8 +287,8 @@ $ csc controller expand --endpoint tcp://127.0.0.1:10000 \
 
 $ # nodeExpand:
 $ csc node expand --endpoint tcp://127.0.0.1:10000 \
-    /mnt/test-csi/test-pod \
-    0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
+    0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46 \
+    /mnt/test-csi/test-pod
 0
 ```
 
@@ -316,4 +350,19 @@ Check:
 $ sudo curve stat --user k8s --filename /k8s/csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 E 2020-08-24T13:57:55.946636+0800 58360 mds_client.cpp:395] GetFileInfo: filename = /k8s/volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46, owner = k8s, errocde = 6, error msg = kFileNotExists, log id = 1
 stat fail, ret = -6
+```
+
+#### Snapshot
+
+```
+## create a snapshot
+$ csc controller create-snapshot --endpoint tcp://127.0.0.1:10000 \
+	--source-volume 0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46 \
+	snapshot-215d24ff-c04c-4b08-a1fb-692c94627c63
+"0024-9ea1a8fc-160d-47ef-b2ef-f0e09677b066-0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46"	23622320128	0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46	seconds:1639297566 nanos:780828000 	true
+
+## delete a snapshot
+$ csc controller delete-snapshot --endpoint tcp://127.0.0.1:10000 \
+    0024-9ea1a8fc-160d-47ef-b2ef-f0e09677b066-0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
+0024-9ea1a8fc-160d-47ef-b2ef-f0e09677b066-0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 ```

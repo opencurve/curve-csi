@@ -84,3 +84,26 @@ func SystemMapOnHost(ctx context.Context, serviceName string, mapCommands []stri
 	ctxlog.Infof(ctx, "map successfully, running as %s.service", serviceName)
 	return nil
 }
+
+type NotFoundErr struct {
+	Id string
+}
+
+func NewNotFoundErr(id ...string) *NotFoundErr {
+	if len(id) != 0 {
+		return &NotFoundErr{Id: strings.Join(id, ",")}
+	}
+	return &NotFoundErr{}
+}
+
+func (e *NotFoundErr) Error() string {
+	if e.Id == "" {
+		return "Not found"
+	}
+	return fmt.Sprintf("Object with Id(%v) not found", e.Id)
+}
+
+func IsNotFoundErr(err error, id ...string) bool {
+	notFoundErr := NewNotFoundErr(id...)
+	return err.Error() == notFoundErr.Error()
+}

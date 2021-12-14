@@ -26,8 +26,8 @@ type CurveConf struct {
 	IsControllerServer bool
 	IsNodeServer       bool
 
-	// curve volume namd prefix
-	CurveVolumePrefix string
+	// curve flags
+	SnapshotServer string
 
 	// debugs
 	DebugPort       int

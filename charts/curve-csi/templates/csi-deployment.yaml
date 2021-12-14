@@ -114,11 +114,9 @@ spec:
         image: "{{ .Values.controllerplugin.plugin.image }}"
         args:
         - --endpoint=$(CSI_ENDPOINT)
-{{- if .Values.common.curveVolumeNamingPrefix }}
-        - "--curve-volume-prefix={{ .Values.common.curveVolumeNamingPrefix }}"
-{{- end }}
         - --drivername=curve.csi.netease.com
         - --nodeid=$(NODE_ID)
+        - --snapshot-server={{ .Values.controllerplugin.snapshotServer }}
 {{- if .Values.controllerplugin.debug.enabled }}
         - "--debug-port={{ .Values.controllerplugin.debug.port }}"
 {{- end }}

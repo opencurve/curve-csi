@@ -39,10 +39,10 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code" : "0",
-​ "Message" : "Exec success.",
-​ "RequestId" : "xxx",
-​ "UUID" : "xxx"
+    "Code" : "0",
+    "Message" : "Exec success.",
+    "RequestId" : "xxx",
+    "UUID" : "xxx"
 }
 ```
 
@@ -84,9 +84,9 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code" : "0",
-​ "Message" : "Exec success.",
-​ "RequestId" : "xxx"
+    "Code" : "0",
+    "Message" : "Exec success.",
+    "RequestId" : "xxx"
 }
 ```
 
@@ -128,9 +128,9 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code" : "0",
-​ "Message" : "Exec success.",
-​ "RequestId" : "xxx"
+    "Code" : "0",
+    "Message" : "Exec success.",
+    "RequestId" : "xxx"
 }
 ```
 
@@ -191,21 +191,21 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code" : "0",
-​ "Message" : "Exec success.",
-​ "RequestId" : "xxx",
-​ "TotalCount": 1,
-​ "Snapshots":[{
-​   "File" : "/zjm/test1",
-​   "FileLength" : 10737418240,
-​   "Name" : "snap1",
-​   "Progress" : 30,
-​   "SeqNum" : 1,
-​   "Status" : 1,
-​   "Time" : 1564391913582677,
-​   "UUID" : "de06df66-b9e4-44df-ba3d-ac94ddee0b28",
-​   "User" : "zjm"
- }]
+    "Code" : "0",
+    "Message" : "Exec success.",
+    "RequestId" : "xxx",
+    "TotalCount": 1,
+    "Snapshots":[{
+        "File" : "/zjm/test1",
+        "FileLength" : 10737418240,
+        "Name" : "snap1",
+        "Progress" : 30,
+        "SeqNum" : 1,
+        "Status" : 1,
+        "Time" : 1564391913582677,
+        "UUID" : "de06df66-b9e4-44df-ba3d-ac94ddee0b28",
+        "User" : "zjm"
+    }]
 }
 ```
 
@@ -249,10 +249,10 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code" : "0",
-​ "Message" : "Exec success.",
-​ "RequestId" : "xxx",
-​ "UUID" : "xxx"
+    "Code" : "0",
+    "Message" : "Exec success.",
+    "RequestId" : "xxx",
+    "UUID" : "xxx"
 }
 ```
 
@@ -296,10 +296,10 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code" : "0",
-​ "Message" : "Exec success.",
-​ "RequestId" : "xxx",
-​ "UUID" : "xxx"
+    "Code" : "0",
+    "Message" : "Exec success.",
+    "RequestId" : "xxx",
+    "UUID" : "xxx"
 }
 ```
 
@@ -340,9 +340,9 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code" : "0",
-​ "Message" : "Exec success.",
-​ "RequestId" : "xxx"
+    "Code" : "0",
+    "Message" : "Exec success.",
+    "RequestId" : "xxx"
 }
 ```
 
@@ -385,7 +385,11 @@ TaskInfo struct:
 
 | Name | Type | Description |
 | --- | --- | --- |
-|TaskType	|enum|	task type: <br/>（0:clone, 1:recover）|
+|TaskType	|enum| task type: <br/>（0:clone, 1:recover）|
+|FileType   |enum| task file type: <br/> (0:SrcFile 1:SrcSnapshot) |
+|IsLazy | bool |task is lazy|
+|Progress|uint8| task progress percent |
+|Src | string | task source snapshot or file |
 |User	|string	|the user of the volume |
 |File	|string|volume name which the clone/recover task belongs to|
 |Time	|uint64| created time stamp |
@@ -405,17 +409,17 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code": "0",
-​ "Message": "Exec success.",
-​ "RequestId": "xxx",
-​ "TotalCount": 1,
-​ "TaskInfos":[{
-  ​ "File" : "/zjm/clone1",
-  ​ "UUID" : "78e83875-2b50-438f-8f25-36715380f4f5",
-  ​ "TaskStatus" : 5,
-  ​ "TaskType" : 0,
-  ​ "Time" : 0,
-  ​ "User" : "zjm"
+    "Code": "0",
+    "Message": "Exec success.",
+    "RequestId": "xxx",
+    "TotalCount": 1,
+    "TaskInfos":[{
+        "File" : "/zjm/clone1",
+        "UUID" : "78e83875-2b50-438f-8f25-36715380f4f5",
+        "TaskStatus" : 5,
+        "TaskType" : 0,
+        "Time" : 0,
+        "User" : "zjm"
  }]
 }
 ```
@@ -459,9 +463,9 @@ HTTP/1.1 200 OK
 Content-Length: xxx
 
 {
-​ "Code" : "0",
-​ "Message" : "Exec success.",
-​ "RequestId" : "xxx"
+    "Code" : "0",
+    "Message" : "Exec success.",
+    "RequestId" : "xxx"
 }
 ```
 

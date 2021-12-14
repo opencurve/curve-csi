@@ -25,7 +25,7 @@ in the Kubernetes documentation.
 ## Develop
 
 You can follow the [csi spec](https://github.com/container-storage-interface/spec/blob/master/spec.md)
-and [curve cli](docs/Curve%20Interface.md).
+and [curve interface](docs/curve-interface).
 
 ## Setup
 
@@ -33,7 +33,7 @@ and [curve cli](docs/Curve%20Interface.md).
 2. Choose a way to deploy the plugin:
 
 - Using the helm chart: [helm installation](charts/curve-csi/README.md)
-- Using the kubernetes manifests: refer to the specific version in `deploy/kubernetes`
+- Using the kubernetes manifests: refer to the specific version in `deploy/manifests`
 
 ## Test and User Guide
 
