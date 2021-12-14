@@ -1,3 +1,8 @@
+## v2.0.0
+
+- support snapshot
+- support clone/restore
+
 ## v2.0.0-alpha
 
 - update csi spec to v1.5.0
