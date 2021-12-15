@@ -1,0 +1,151 @@
+---
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: csi-curvebs-plugin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+    app: csi-curvebs-plugin
+spec:
+  selector:
+    matchLabels:
+      app: csi-curvebs-plugin
+  updateStrategy:
+    type: OnDelete
+  template:
+    metadata:
+      labels:
+        app: csi-curvebs-plugin
+    spec:
+      serviceAccountName: csi-curvebs-nodeplugin
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: driver-registrar
+        image: "{{ .Values.nodeplugin.registrar.image }}"
+        securityContext:
+          privileged: true
+        args:
+        - "--v=5"
+        - "--csi-address=/csi/csi.sock"
+        - "--kubelet-registration-path=/var/lib/kubelet/plugins/{{ .Values.driverName }}/csi.sock"
+        env:
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+        - name: registration-dir
+          mountPath: /registration
+        resources:
+{{ toYaml .Values.nodeplugin.registrar.resources | indent 10 }}
+      - name: curvebs-plugin
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ["SYS_ADMIN"]
+          allowPrivilegeEscalation: true
+        image: "{{ .Values.nodeplugin.plugin.image }}"
+        args:
+        - --endpoint=$(CSI_ENDPOINT)
+        - --type=curvebs 
+        - --drivername={{ .Values.driverName }}
+        - --nodeid=$(NODE_ID)
+{{- if .Values.nodeplugin.debug.enabled }}
+        - "--debug-port={{ .Values.nodeplugin.debug.port }}"
+{{- end }}
+        - --node-server=true
+{{- if .Values.nodeplugin.logToFile.enabled }}
+        - --logtostderr=false
+        - --log_dir=/var/log/csi-curvebs
+{{- end }}
+        - -v=4
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CSI_ENDPOINT
+          value: unix:///csi/csi.sock
+        resources:
+{{ toYaml .Values.nodeplugin.plugin.resources | indent 10 }}
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+        - mountPath: /dev
+          name: host-dev
+        - mountPath: /sys
+          name: host-sys
+        - mountPath: /lib/modules
+          name: lib-modules
+          readOnly: true
+        - name: plugin-dir
+          mountPath: /var/lib/kubelet/plugins
+          mountPropagation: "Bidirectional"
+        - name: mountpoint-dir
+          mountPath: /var/lib/kubelet/pods
+          mountPropagation: "Bidirectional"
+        - mountPath: /etc/localtime
+          name: localtime
+{{- if .Values.nodeplugin.logToFile.enabled }}
+        - mountPath: /var/log/csi-curvebs
+          name: log
+{{- end }}
+      volumes:
+      - name: socket-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins/{{ .Values.driverName }}
+          type: DirectoryOrCreate
+      - name: plugin-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins
+          type: Directory
+      - name: mountpoint-dir
+        hostPath:
+          path: /var/lib/kubelet/pods
+          type: DirectoryOrCreate
+      - name: registration-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins_registry/
+          type: Directory
+      - name: host-dev
+        hostPath:
+          path: /dev
+      - name: host-sys
+        hostPath:
+          path: /sys
+      - name: lib-modules
+        hostPath:
+          path: /lib/modules
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+{{- if .Values.nodeplugin.logToFile.enabled }}
+      - name: log
+        hostPath:
+          path: {{ .Values.nodeplugin.logToFile.hostDir }}
+{{- end -}}
+{{- if .Values.nodeplugin.affinity }}
+      affinity:
+{{ toYaml .Values.nodeplugin.affinity . | indent 8 -}}
+{{- end -}}
+{{- if .Values.nodeplugin.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeplugin.nodeSelector | indent 8 -}}
+{{- end -}}
+{{- if .Values.nodeplugin.tolerations }}
+      tolerations:
+{{ toYaml .Values.nodeplugin.tolerations | indent 8 -}}
+{{- end -}}

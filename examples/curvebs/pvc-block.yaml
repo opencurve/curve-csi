@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: curvebs-test-pvc-block
+spec:
+  accessModes:
+  - ReadWriteMany
+  volumeMode: Block
+  storageClassName: curvebs
+  resources:
+    requests:
+      storage: 20Gi

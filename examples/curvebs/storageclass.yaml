@@ -1,0 +1,11 @@
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: curvebs
+parameters:
+  user: k8s
+  cloneLazy: "true"
+provisioner: curvebs.csi.netease.com
+reclaimPolicy: Delete
+volumeBindingMode: Immediate

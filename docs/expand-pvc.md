@@ -1,6 +1,10 @@
+# Expand PVC
+
 - [Prerequisite](#prerequisite)
-- [Expand Curve Filesystem PVC](#expand-curve-filesystem-pvc)
-- [Expand Curve Block PVC](#expand-curve-block-pvc)
+- [CurveBS](#curvebs)
+  - [Expand CurveBS Filesystem PVC](#expand-curvebs-filesystem-pvc)
+  - [Expand CurveBS Block PVC](#expand-curvebs-block-pvc)
+- [CurveFS](#curvefs)
 
 ## Prerequisite
 
@@ -8,7 +12,9 @@
 
 - The controlling StorageClass must have `allowVolumeExpansion` set to `true`.
 
-## Expand Curve Filesystem PVC
+## CurveBS
+
+### Expand CurveBS Filesystem PVC
 
 Create PVC:
 
@@ -16,29 +22,29 @@ Create PVC:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: curve-test-pvc
+  name: curvebs-test-pvc
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 20Gi
-  storageClassName: curve
+  storageClassName: curvebs
 ```
 
 Wait PVC bounded:
 
 ```bash
 $ kubectl get pvc 
-NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-curve-test-pvc   Bound    pvc-b2789e09-9854-4aa1-b556-d9b0e0569f87   20Gi       RWO            curve          38s
+NAME               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+curvebs-test-pvc   Bound    pvc-b2789e09-9854-4aa1-b556-d9b0e0569f87   20Gi       RWO            curvebs          38s
 ```
 
 Create the pod using this PVC, check the size:
 
 ```bash
-$ kubectl exec -it csi-curve-test bash
-root@csi-curve-test:/# df -h /var/lib/www/html
+$ kubectl exec -it csi-curvebs-test bash
+root@csi-curvebs-test:/# df -h /var/lib/www/html
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nbd0        20G   45M   20G   1% /var/lib/www/html
 ```
@@ -46,21 +52,21 @@ Filesystem      Size  Used Avail Use% Mounted on
 Now expand the PVC by editing the PVC (pvc.spec.resource.requests.storage), then get it:
 
 ```bash
-$  kubectl get pvc curve-test-pvc 
-NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-curve-test-pvc   Bound    pvc-b2789e09-9854-4aa1-b556-d9b0e0569f87   30Gi       RWO            curve          7m3s
+$  kubectl get pvc curvebs-test-pvc 
+NAME               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+curvebs-test-pvc   Bound    pvc-b2789e09-9854-4aa1-b556-d9b0e0569f87   30Gi       RWO            curvebs          7m3s
 ```
 
 Check the directory size inside the pod where PVC is mounted:
 
 ```bash
-$ kubectl exec -it csi-curve-test bash
-root@csi-curve-test:/# df -h /var/lib/www/html
+$ kubectl exec -it csi-curvebs-test bash
+root@csi-curvebs-test:/# df -h /var/lib/www/html
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nbd0        30G   44M   30G   1% /var/lib/www/html
 ```
 
-## Expand Curve Block PVC
+### Expand CurveBS Block PVC
 
 Create block PVC:
 
@@ -68,12 +74,12 @@ Create block PVC:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: curve-test-pvc-block
+  name: curvebs-test-pvc-block
 spec:
   accessModes:
   - ReadWriteMany
   volumeMode: Block
-  storageClassName: curve
+  storageClassName: curvebs
   resources:
     requests:
       storage: 20Gi
@@ -82,9 +88,9 @@ spec:
 Wait the PVC bounded:
 
 ```bash
-$ kubectl get pvc  curve-test-pvc-block
-NAME                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-curve-test-pvc-block   Bound    pvc-6fd55b8f-5a26-422c-b4d9-e9613e5724b5   20Gi       RWX            curve          14s
+$ kubectl get pvc  curvebs-test-pvc-block
+NAME                     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+curvebs-test-pvc-block   Bound    pvc-6fd55b8f-5a26-422c-b4d9-e9613e5724b5   20Gi       RWX            curvebs          14s
 ```
 
 Create the pod using this PVC:
@@ -95,7 +101,7 @@ kind: Pod
 metadata:
   annotations:
     container.apparmor.security.beta.kubernetes.io/my-container: unconfined
-  name: csi-curve-test-block
+  name: csi-curvebs-test-block
 spec:
   containers:
   - name: my-container
@@ -112,29 +118,31 @@ spec:
   volumes:
   - name: my-volume
     persistentVolumeClaim:
-      claimName: curve-test-pvc-block
+      claimName: curvebs-test-pvc-block
 ```
 
 Check the size:
 
 ```bash
-$ kubectl exec -it csi-curve-test-block bash
-root@csi-curve-test-block:/# blockdev  --getsize64 /dev/block 
+$ kubectl exec -it csi-curvebs-test-block bash
+root@csi-curvebs-test-block:/# blockdev  --getsize64 /dev/block 
 21474836480
 ```
 
 Now expand the PVC by editing the PVC (pvc.spec.resource.requests.storage), then get it:
 
 ```bash
-$ kubectl get pvc curve-test-pvc-block
-NAME                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-curve-test-pvc-block   Bound    pvc-6fd55b8f-5a26-422c-b4d9-e9613e5724b5   30Gi       RWX            curve          6m45s
+$ kubectl get pvc curvebs-test-pvc-block
+NAME                     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+curvebs-test-pvc-block   Bound    pvc-6fd55b8f-5a26-422c-b4d9-e9613e5724b5   30Gi       RWX            curvebs          6m45s
 ```
 
 Check the block size inside the pod:
 
 ```bash
-$ kubectl exec -it csi-curve-test-block bash
-root@csi-curve-test-block:/# blockdev  --getsize64 /dev/block 
+$ kubectl exec -it csi-curvebs-test-block bash
+root@csi-curvebs-test-block:/# blockdev  --getsize64 /dev/block 
 32212254720
 ```
+
+## CurveFS

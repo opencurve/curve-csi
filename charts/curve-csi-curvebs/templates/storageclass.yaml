@@ -1,0 +1,12 @@
+{{- if .Values.storageClass.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: curvebs
+parameters:
+  user: {{ .Values.storageClass.parameters.user }}
+  cloneLazy: "{{ .Values.storageClass.parameters.cloneLazy }}"
+provisioner: {{ .Values.driverName }}
+reclaimPolicy: Delete
+allowVolumeExpansion: {{ .Values.storageClass.allowVolumeExpansion }}
+{{- end }}

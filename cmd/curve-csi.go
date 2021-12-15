@@ -24,13 +24,17 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/opencurve/curve-csi/cmd/options"
-	"github.com/opencurve/curve-csi/pkg/curve"
+	"github.com/opencurve/curve-csi/pkg/curvebs"
 	"github.com/opencurve/curve-csi/pkg/logs"
 	"github.com/opencurve/curve-csi/pkg/util"
 )
 
 const (
-	driverDefaultName = "curve.csi.netease.com"
+	bsType = "curvebs"
+	fsType = "curvefs"
+
+	bsDriverDefaultName = "curvebs.csi.netease.com"
+	fsDriverDefaultName = "curvefs.csi.netease.com"
 )
 
 var (
@@ -40,6 +44,7 @@ var (
 
 func init() {
 	// common flags
+	flag.StringVar(&curveConf.Vtype, "type", "", "driver type [curvebs|curvefs]")
 	flag.StringVar(&curveConf.Endpoint, "endpoint", "unix://tmp/csi.sock", "CSI endpoint")
 	flag.StringVar(&curveConf.DriverName, "drivername", "", "name of the driver")
 	flag.StringVar(&curveConf.NodeID, "nodeid", "", "node id")
@@ -65,15 +70,30 @@ func main() {
 	logs.InitLogs()
 	defer logs.FlushLogs()
 
+	setAndValidateDriverName()
+	klog.Infof("Starting the driver (type %v name %s) with version: %v", curveConf.Vtype, curveConf.DriverName, util.GetVersion())
+	switch curveConf.Vtype {
+	case bsType:
+		driver := curvebs.NewCurveBSDriver()
+		driver.Run(curveConf)
+	}
+
+	os.Exit(0)
+}
+
+func setAndValidateDriverName() {
 	if curveConf.DriverName == "" {
-		curveConf.DriverName = driverDefaultName
+		switch curveConf.Vtype {
+		case bsType:
+			curveConf.DriverName = bsDriverDefaultName
+		case fsType:
+			curveConf.DriverName = fsDriverDefaultName
+		default:
+			klog.Errorf("can not support driver type: %v", curveConf.Vtype)
+			os.Exit(1)
+		}
 	}
 	if err := util.ValidateDriverName(curveConf.DriverName); err != nil {
 		klog.Fatalln(err)
 	}
-
-	klog.Infof("Starting the driver %s with version: %v", curveConf.DriverName, util.GetVersion())
-	curveDriver := curve.NewCurveDriver()
-	curveDriver.Run(curveConf)
-	os.Exit(0)
 }

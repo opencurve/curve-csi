@@ -14,23 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package options
+package curvebs
 
-// Config holds the parameters list which can be configured
-type CurveConf struct {
-	Vtype      string // curvebs/curvefs
-	Endpoint   string // CSI endpoint
-	DriverName string // name of the driver
-	NodeID     string // node id
+import (
+	"testing"
 
-	// csi flags
-	IsControllerServer bool
-	IsNodeServer       bool
+	"github.com/stretchr/testify/assert"
+)
 
-	// curve flags
-	SnapshotServer string
+func TestRoundUpToGiBInt(t *testing.T) {
+	var size1Mi int64 = 1 * 1024 * 1024
+	size, err := roundUpToGiBInt(size1Mi)
+	assert.NoError(t, err)
+	assert.Equal(t, 10, size)
 
-	// debugs
-	DebugPort       int
-	EnableProfiling bool
+	var size20Gi int64 = 20 * 1024 * 1024 * 1024
+	size, err = roundUpToGiBInt(size20Gi + size1Mi)
+	assert.NoError(t, err)
+	assert.Equal(t, 21, size)
+
+	var size4Ti int64 = 4 * 1024 * 1024 * 1024 * 1024
+	_, err = roundUpToGiBInt(size4Ti + size1Mi)
+	assert.Error(t, err)
 }
