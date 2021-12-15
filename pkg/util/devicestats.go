@@ -36,7 +36,7 @@ type DeviceStats struct {
 }
 
 func GetDeviceStats(path string) (*DeviceStats, error) {
-	isBlock, err := isBlockDevice(path)
+	isBlock, _ := isBlockDevice(path)
 	if isBlock {
 		size, err := getBlockDeviceSize(path)
 		if err != nil {
@@ -50,7 +50,7 @@ func GetDeviceStats(path string) (*DeviceStats, error) {
 	}
 
 	var statfs unix.Statfs_t
-	err = unix.Statfs(path, &statfs)
+	err := unix.Statfs(path, &statfs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to statfs() %q: %s", path, err)
 	}
