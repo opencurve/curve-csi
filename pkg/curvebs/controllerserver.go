@@ -87,7 +87,7 @@ func (cs *controllerServer) CreateVolume(
 			},
 		}, nil
 	}
-	if !util.IsNotFoundErr(err) {
+	if !util.IsNotFoundError(err) {
 		ctxlog.ErrorS(ctx, err, "failed to get volDetail")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -186,7 +186,7 @@ func (cs *controllerServer) DeleteVolume(
 	// clean cloneTask if the volume is cloned
 	taskInfo, err := snapServer.GetCloneTaskOfDestination(ctx, volOptions.genVolumePath())
 	if err != nil {
-		if util.IsNotFoundErr(err) {
+		if util.IsNotFoundError(err) {
 			ctxlog.Infof(ctx, "the volume is not cloned, need not clean tasks")
 		} else {
 			ctxlog.Warningf(ctx, "can not get taskInfo of path %v", volOptions.genVolumePath())
@@ -287,7 +287,7 @@ func (cs *controllerServer) CreateSnapshot(
 		ctxlog.V(4).Infof(ctx, "snapshot (name %v) already exists, check status...", snapshotName)
 		return waitSnapshotDone(ctx, snapServer, curveSnapshot, sourceVolId)
 	}
-	if !util.IsNotFoundErr(err) {
+	if !util.IsNotFoundError(err) {
 		ctxlog.ErrorS(ctx, err, "failed to get snapshot by name", "snapshotName", snapshotName)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -351,7 +351,7 @@ func (cs *controllerServer) DeleteSnapshot(
 	// get snapshot
 	curveSnapshot, err := snapServer.GetFileSnapshotOfId(ctx, snapCurveUUID)
 	if err != nil {
-		if util.IsNotFoundErr(err, snapCurveUUID) {
+		if util.IsNotFoundError(err) {
 			ctxlog.Infof(ctx, "snapshot %v not found, maybe already deleted.", snapshotId)
 			return &csi.DeleteSnapshotResponse{}, nil
 		}
@@ -551,7 +551,7 @@ func cloneVolume(
 		}
 		return taskInfo.UUID, nil
 	}
-	if !util.IsNotFoundErr(err) {
+	if !util.IsNotFoundError(err) {
 		return "", err
 	}
 
@@ -570,7 +570,7 @@ func ensureSnapshotExists(ctx context.Context, snapshotServer, snapshotId string
 	}
 	snapServer := curveservice.NewSnapshotServer(snapshotServer, volOptions.user, volOptions.volName)
 	if _, err := snapServer.GetFileSnapshotOfId(ctx, snapCurveUUID); err != nil {
-		if util.IsNotFoundErr(err, snapCurveUUID) {
+		if util.IsNotFoundError(err) {
 			return "", status.Errorf(codes.NotFound, "the source snapshot(UUID %v) not found", snapCurveUUID)
 		}
 		return "", status.Error(codes.Internal, err.Error())
@@ -587,7 +587,7 @@ func ensureVolumeExists(ctx context.Context, snapshotServer, volumeId string) (s
 	}
 	curveVol := curveservice.NewCurveVolume(volOptions.user, volOptions.volName, volOptions.sizeGiB)
 	if _, err := curveVol.Stat(ctx); err != nil {
-		if util.IsNotFoundErr(err) {
+		if util.IsNotFoundError(err) {
 			return "", status.Errorf(codes.NotFound, "the source volume (%v) not found", volOptions)
 		}
 		return "", status.Error(codes.Internal, err.Error())
@@ -597,7 +597,7 @@ func ensureVolumeExists(ctx context.Context, snapshotServer, volumeId string) (s
 	volPath := volOptions.genVolumePath()
 	taskInfo, err := snapServer.GetCloneTaskOfDestination(ctx, volPath)
 	if err != nil {
-		if util.IsNotFoundErr(err) {
+		if util.IsNotFoundError(err) {
 			return volPath, nil
 		}
 		return "", status.Error(codes.Internal, err.Error())

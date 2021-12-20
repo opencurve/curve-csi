@@ -76,7 +76,7 @@ func (cv *CurveVolume) Stat(ctx context.Context) (*CurveVolumeDetail, error) {
 
 	ctxlog.Warningf(ctx, "[curve] failed to stat the file %s, err: %v, output: %v", cv.FilePath, err, outputStr)
 	if strings.Contains(outputStr, fmt.Sprintf(retFailFormat, retNotExist)) {
-		return nil, util.NewNotFoundErr()
+		return nil, &util.NotFoundError{Id: cv.FilePath}
 	}
 
 	return nil, fmt.Errorf("can not run curve %v, err: %v, output: %v", args, err, outputStr)
@@ -169,7 +169,7 @@ func (cv *CurveVolume) create(ctx context.Context) (output []byte, err error) {
 }
 
 // curve list [-h] --user USER --dirname DIRNAME
-func (cv *CurveVolume) list(ctx context.Context) ([]string, error) {
+func (cv *CurveVolume) List(ctx context.Context) ([]string, error) {
 	args := []string{"list", "--user", cv.User, "--dirname", cv.DirPath}
 	ctxlog.V(4).Infof(ctx, "starting exec: curve %v", args)
 	output, err := util.ExecCommandHost("curve", args)

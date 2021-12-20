@@ -72,7 +72,7 @@ func (cs *SnapshotServer) GetFileSnapshotOfName(ctx context.Context, snapName st
 		offset += limit
 	}
 
-	return snap, util.NewNotFoundErr()
+	return snap, &util.NotFoundError{Id: snapName}
 }
 
 // GetSnapshotById gets the snapshot with specific uuid
@@ -128,9 +128,9 @@ func (cs *SnapshotServer) getFileSnapshots(ctx context.Context, uuid string, lim
 	if resp.Code == FileNotExists || len(resp.Snapshots) == 0 {
 		ctxlog.V(4).Infof(ctx, "not found, resp: %+v", resp)
 		if uuid != "" {
-			return resp, util.NewNotFoundErr(uuid)
+			return resp, &util.NotFoundError{Id: uuid}
 		}
-		return resp, util.NewNotFoundErr()
+		return resp, &util.NotFoundError{}
 	}
 
 	if resp.Code != ExecSuccess {
@@ -227,7 +227,7 @@ func (cs *SnapshotServer) CancelSnapshot(ctx context.Context, uuid string) error
 	}
 
 	if resp.Code == FileNotExists {
-		return util.NewNotFoundErr(uuid)
+		return &util.NotFoundError{Id: uuid}
 	}
 	if resp.Code != ExecSuccess {
 		return fmt.Errorf("faied to cancel snapshot, resp: %+v", resp)
@@ -325,7 +325,7 @@ func (cs *SnapshotServer) getCloneTask(ctx context.Context, uuid, destination st
 	}
 
 	if resp.Code == FileNotExists || len(resp.TaskInfos) == 0 {
-		return resp, util.NewNotFoundErr()
+		return resp, &util.NotFoundError{}
 	}
 	if resp.Code != ExecSuccess {
 		return resp, fmt.Errorf("faied to get task, resp: %+v", resp)
@@ -356,7 +356,7 @@ func (cs *SnapshotServer) Clone(ctx context.Context, source, destination string,
 	}
 
 	if resp.Code == FileNotExists {
-		return "", util.NewNotFoundErr()
+		return "", &util.NotFoundError{}
 	}
 	if resp.Code != ExecSuccess {
 		return "", fmt.Errorf("faied to clone snapshot, resp: %+v", resp)
@@ -371,7 +371,7 @@ func (cs *SnapshotServer) CleanCloneTask(ctx context.Context, uuid string) error
 	ctxlog.V(4).Infof(ctx, "get task status %v before clean it", uuid)
 	taskInfo, err := cs.GetCloneTaskOfId(ctx, uuid)
 	if err != nil {
-		if util.IsNotFoundErr(err) {
+		if util.IsNotFoundError(err) {
 			return nil
 		}
 		return err
@@ -382,7 +382,7 @@ func (cs *SnapshotServer) CleanCloneTask(ctx context.Context, uuid string) error
 		}
 	}
 	if err = cs.waitForCloneTaskStatus(ctx, taskInfo.File, TaskStatusDone, TaskStatusError); err != nil {
-		if util.IsNotFoundErr(err) {
+		if util.IsNotFoundError(err) {
 			return nil
 		}
 		return err
@@ -441,7 +441,7 @@ func (cs *SnapshotServer) Flatten(ctx context.Context, uuid string) error {
 	}
 
 	if resp.Code == FileNotExists {
-		return util.NewNotFoundErr()
+		return &util.NotFoundError{}
 	}
 	if resp.Code != ExecSuccess {
 		return fmt.Errorf("faied to flatten task, resp: %+v", resp)
@@ -502,7 +502,7 @@ func (cs *SnapshotServer) EnsureTaskFromSourceDone(ctx context.Context, source s
 	for offset < total {
 		taskResp, err := cs.getCloneTask(ctx, "", "", limit, offset)
 		if err != nil {
-			if util.IsNotFoundErr(err) {
+			if util.IsNotFoundError(err) {
 				break
 			}
 			return err
@@ -525,7 +525,7 @@ func (cs *SnapshotServer) EnsureTaskFromSourceDone(ctx context.Context, source s
 	for _, t := range needFlatten {
 		taskInfo, err := cs.GetCloneTaskOfId(ctx, t.UUID)
 		if err != nil {
-			if util.IsNotFoundErr(err) {
+			if util.IsNotFoundError(err) {
 				continue
 			}
 			return err

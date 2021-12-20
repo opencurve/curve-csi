@@ -67,7 +67,6 @@ func (resizefs *ResizeFs) extResize(ctx context.Context, devicePath string) (boo
 
 	resizeError := fmt.Errorf("resize of device %s failed: %v. resize2fs output: %s", devicePath, err, string(output))
 	return false, resizeError
-
 }
 
 func (resizefs *ResizeFs) xfsResize(ctx context.Context, deviceMountPath string) (bool, error) {
