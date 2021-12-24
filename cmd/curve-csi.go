@@ -25,6 +25,7 @@ import (
 
 	"github.com/opencurve/curve-csi/cmd/options"
 	"github.com/opencurve/curve-csi/pkg/curvebs"
+	"github.com/opencurve/curve-csi/pkg/curvefs"
 	"github.com/opencurve/curve-csi/pkg/logs"
 	"github.com/opencurve/curve-csi/pkg/util"
 )
@@ -75,6 +76,9 @@ func main() {
 	switch curveConf.Vtype {
 	case bsType:
 		driver := curvebs.NewCurveBSDriver()
+		driver.Run(curveConf)
+	case fsType:
+		driver := curvefs.NewCurveFSDriver()
 		driver.Run(curveConf)
 	}
 
