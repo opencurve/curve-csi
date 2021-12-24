@@ -17,10 +17,20 @@ The driver is currently developed with csi spec v1.5.0, and supported kubernetes
 
 Other csi-v1.0+ enabled container orchestrator environments may work fine.
 
-#### CSI spec and Kubernetes version compatibility
+### CSI spec and Kubernetes version compatibility
 
 Please refer to the [matrix](https://kubernetes-csi.github.io/docs/#kubernetes-releases)
 in the Kubernetes documentation.
+
+### Plugin releases
+
+| Releases | Latest Version |CSI Spec Version | Kubernetes Version | New Features |
+|--- | ---| --- |--- | ---|
+| master/release-2.1 | v2.1.0 | v1.5.0 | v1.17+ | - Support CurveFS |
+| release-2.0 | v2.0.0 | v1.5.0 | v1.17+ | - Snapshot<br/> - Clone<br/> - Block mode volume|
+| release-csi-1.1 | csi-v1.1.0-rc2 | v1.1.0 | v1.13+ | - Dynamically provision <br/> - Expand volume <br/> - Volume metrics|
+
+Different plugin releases may have compatibility problems, refer to [upgrade-plugin](docs/upgrade-plugin.md) when upgrading the plguin.
 
 ## Develop
 
@@ -37,4 +47,4 @@ and [curve interface](docs/curve-interface).
 
 ## Test and User Guide
 
-Refer to [doc](docs/README.md), you can get more details and test the driver by CSC tool.
+Refer to [doc](docs/README.md), you can get more details.
