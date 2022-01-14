@@ -1,15 +1,15 @@
-[中文版](../cn/curve-interface/curve-nbd.md)
+[English version](../../curve-interface/curve-nbd.md)
 
 # Curve nbd tool 
 
-Map/unmap the curve device.
+挂载/卸载cure设备。
 
-- [Usage](#usage)
-- [Map](#map)
-- [List mapped](#list-mapped)
-- [Unmap](#unmap)
+- <a href="#usage">用法</a>
+- <a href="#map">挂载</a>
+- <a href="#list">列出本地已挂载设备</a>
+- <a href="#unmap">卸载</a>
 
-### Usage
+### <div id="usage">用法</div>
 
 ```
 Usage: curve-nbd [options] map <image>  Map an image to nbd device
@@ -24,18 +24,17 @@ Map options:
   --try-netlink           Use the nbd netlink interface
 ```
 
-### Map
+### <div id="map">挂载</div>
 
-The format of volume name is `cbd:<user>/<filename_full_path>_<user>_`.
+设备名称格式为：`cbd:<user>/<filename_full_path>_<user>_`。
 
-e.g.
+比如：
 
 ```
 $ curve-nbd map cbd:k8s//k8s/csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46_k8s_
 ```
 
-### List mapped
-
+### <div id="list">列出本地已挂载设备</div>
 
 ```
 $ curve-nbd list-mapped
@@ -43,7 +42,7 @@ id      image                                                                dev
 1509297 cbd:k8s//k8s/csi-vol-pvc-647525be-c0d6-464b-b548-1fa26f6d183c_k8s_ /dev/nbd1 timeout=86400
 ```
 
-### Unmap
+### <div id="unmap">卸载</div>
 
 ```
 $ curve-nbd unmap /dev/nbd1

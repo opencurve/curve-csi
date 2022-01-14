@@ -1,12 +1,12 @@
-[中文版](cn/block-volume.md)
+[English version](../block-volume.md)
 
 # CurveBS block volume
 
-- [Create PVC](#create-pvc)
-- [Create Pod](#create-pod)
-- [Check in Pod](#check-in-pod)
+- <a href="#pvc">创建pvc</a>
+- <a href="#pod">创建pod</a>
+- <a href="#check">pod内检查</a>
 
-### Create PVC
+### <div id="pvc">创建pvc</div>
 
 ```yaml
 apiVersion: v1
@@ -23,7 +23,7 @@ spec:
       storage: 20Gi
 ```
 
-### Create Pod
+### <div id="pod">创建pod</div>
 
 ```
 apiVersion: v1
@@ -52,7 +52,7 @@ spec:
       claimName: curvebs-test-pvc-block
 ```
 
-### Check in Pod
+### <div id="check">pod内检查</div>
 
 ```
 ## waiting for the pod running

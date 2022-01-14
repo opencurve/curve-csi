@@ -1,20 +1,20 @@
-[中文版](cn/csc-test.md)
+[English version](../csc-test.md)
 
-# Test Using CSC Tool
+# CSC工具测试
 
-- [Prerequisite](#prerequisite)
+- <a href="#req">依赖</a>
 - [CurveBS](#curvebs)
 - [CurveFS](#curvefs)
 
-## Prerequisite
+## <div id="req">依赖</div>
 
-**Install csc tool:**
+**安装csc工具:**
 
-Get the csc code from `https://github.com/rexray/gocsi/tree/release/1.1/csc` and run `make`.
+获取代码 `https://github.com/rexray/gocsi/tree/release/1.1/csc`，然后运行`make`.
 
 ## CurveBS
 
-#### Start curve csi driver
+#### 启动curvebs插件
 
 ```bash
 curve-csi --nodeid testnode \
@@ -24,14 +24,14 @@ curve-csi --nodeid testnode \
     -v 5
 ```
 
-#### Get plugin info
+#### 获取插件信息
 
 ```text
 $ csc identity plugin-info --endpoint tcp://127.0.0.1:10000
 "curve.csi.netease.com" "csi-v1.1.0-rc1"
 ```
 
-#### Get supported capabilities
+#### 获取插件能力
 
 ```text
 $ csc identity plugin-capabilities --endpoint tcp://127.0.0.1:10000
@@ -39,7 +39,7 @@ CONTROLLER_SERVICE
 ONLINE
 ```
 
-#### Get controller implemented capabilities
+#### 获取控制端能力
 
 ```text
 $ csc controller get-capabilities  --endpoint tcp://127.0.0.1:10000
@@ -48,7 +48,7 @@ $ csc controller get-capabilities  --endpoint tcp://127.0.0.1:10000
 &{type:EXPAND_VOLUME }
 ```
 
-#### Create a volume
+#### 创建卷
 
 ```text
 $ uuidgen
@@ -62,9 +62,9 @@ $ csc controller create --endpoint tcp://127.0.0.1:10000 \
 "0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46"  10737418240     "user"="k8s"
 ```
 
-If the volume is block type, set: `--cap 5,1`
+如果卷是block模式，则设置: `--cap 5,1`
 
-Check:
+检查:
 
 ```text
 $ sudo curve stat --user k8s --filename /k8s/csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
@@ -79,7 +79,7 @@ fileStatus: Created
 root@pubt1-k8s-for-dev2:~#
 ```
 
-#### NodeStage a volume
+#### Node端stage卷
 
 ```text
 $ sudo mkdir -p /mnt/test-csi/volume-globalmount
@@ -90,9 +90,9 @@ $ csc node stage --endpoint tcp://127.0.0.1:10000 \
 0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 ```
 
-If the volume is block type, set: `--cap 5,1`
+如果卷是block模式，则设置:  `--cap 5,1`
 
-Check:
+校验:
 
 ```text
 $ sudo curve-nbd list-mapped
@@ -104,7 +104,7 @@ TARGET                          SOURCE    FSTYPE OPTIONS
 /mnt/test-csi/volume-globalmount/0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46 /dev/nbd0 ext4   rw,relatime,data=ordered
 ```
 
-#### NodePublish a volume
+#### Node端publish卷
 
 ```text
 $ csc node publish --endpoint tcp://127.0.0.1:10000 \
@@ -115,7 +115,7 @@ $ csc node publish --endpoint tcp://127.0.0.1:10000 \
 0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 ```
 
-Check:
+校验:
 
 ```text
 $ sudo findmnt /mnt/test-csi/test-pod
@@ -123,7 +123,7 @@ TARGET                 SOURCE    FSTYPE OPTIONS
 /mnt/test-csi/test-pod /dev/nbd0 ext4   rw,relatime,data=ordered
 ```
 
-#### NodeGetVolumeStats a volume
+#### Node端获取卷状态信息
 
 ```text
 $ csc node stats --endpoint tcp://127.0.0.1:10000 \
@@ -132,7 +132,7 @@ $ csc node stats --endpoint tcp://127.0.0.1:10000 \
 655349  655360  11      INODES
 ```
 
-Check:
+校验:
 
 ```
 $ sudo df /mnt/test-csi/test-pod
@@ -144,7 +144,7 @@ Filesystem     Inodes IUsed  IFree IUse% Mounted on
 /dev/nbd0      655360    11 655349    1% /mnt/test-csi/test-pod
 ```
 
-#### Expand a Volume
+#### 扩容
 
 ```text
 $ # controllerExpand:
@@ -160,7 +160,7 @@ $ csc node expand --endpoint tcp://127.0.0.1:10000 \
 0
 ```
 
-Check:
+校验:
 
 ```text
 $ sudo curve stat --user k8s --filename /k8s/csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46|grep length
@@ -170,7 +170,7 @@ $ sudo df -h /mnt/test-csi/test-pod
 /dev/nbd0        20G   44M   20G   1% /mnt/test-csi/test-pod
 ```
 
-#### NodeUnpublish a volume
+#### Node端unpublish卷
 
 ```text
 $ csc node unpublish --endpoint tcp://127.0.0.1:10000 \
@@ -179,14 +179,14 @@ $ csc node unpublish --endpoint tcp://127.0.0.1:10000 \
 0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 ```
 
-Check:
+校验:
 
 ```
 $ sudo file /mnt/test-csi/test-pod
 /mnt/test-csi/test-pod: cannot open `/mnt/test-csi/test-pod' (No such file or directory)
 ```
 
-#### NodeUnstage a volume
+#### Node端unstage卷
 
 ```text
 $ csc node unstage --endpoint tcp://127.0.0.1:10000 \
@@ -195,7 +195,7 @@ $ csc node unstage --endpoint tcp://127.0.0.1:10000 \
 0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 ```
 
-Check:
+校验:
 
 ```
 $ sudo file /mnt/test-csi/volume-globalmount
@@ -204,7 +204,7 @@ $ sudo file /mnt/test-csi/volume-globalmount
 $ sudo curve-nbd list-mapped
 ```
 
-#### Delete a volume
+#### 删除卷
 
 ```text
 $ csc controller delete --endpoint tcp://127.0.0.1:10000 \
@@ -212,7 +212,7 @@ $ csc controller delete --endpoint tcp://127.0.0.1:10000 \
 0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 ```
 
-Check:
+校验:
 
 ```
 $ sudo curve stat --user k8s --filename /k8s/csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
@@ -220,16 +220,16 @@ E 2020-08-24T13:57:55.946636+0800 58360 mds_client.cpp:395] GetFileInfo: filenam
 stat fail, ret = -6
 ```
 
-#### Snapshot
+#### 快照
 
 ```
-## create a snapshot
+## 创建快照
 $ csc controller create-snapshot --endpoint tcp://127.0.0.1:10000 \
 	--source-volume 0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46 \
 	snapshot-215d24ff-c04c-4b08-a1fb-692c94627c63
 "0024-9ea1a8fc-160d-47ef-b2ef-f0e09677b066-0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46"	23622320128	0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46	seconds:1639297566 nanos:780828000 	true
 
-## delete a snapshot
+## 删除快照
 $ csc controller delete-snapshot --endpoint tcp://127.0.0.1:10000 \
     0024-9ea1a8fc-160d-47ef-b2ef-f0e09677b066-0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46
 0024-9ea1a8fc-160d-47ef-b2ef-f0e09677b066-0003-k8s-csi-vol-volume-fa0c04c9-2e93-487e-8986-1e1625fd8c46

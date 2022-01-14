@@ -1,3 +1,5 @@
+[中文版](README_cn.md)
+
 # Curve CSI Driver
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/opencurve/curve-csi)](https://goreportcard.com/report/github.com/opencurve/curve-csi)
@@ -43,7 +45,7 @@ and [curve interface](docs/curve-interface).
 2. Choose a way to deploy the plugin:
 
 - Using the helm chart: [helm installation](charts/curve-csi/README.md)
-- Using the kubernetes manifests: refer to the specific version in `deploy/manifests`
+- Using the kubernetes manifests: refer to files in `deploy/`
 
 ## Test and User Guide
 

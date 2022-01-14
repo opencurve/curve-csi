@@ -1,3 +1,5 @@
+[中文版](cn/README.md)
+
 # CSI Curve Driver
 
 This document provides more detail about curve-csi driver.
@@ -57,7 +59,7 @@ kubectl apply -f ./*.yaml
 You can dynamically set the log level by enabling the driver parameter `--debug-port`,
 and call:
 
-```text
+```bash
 curl -XPUT http://127.0.0.1:<debugPort>/debug/flags/v -d '5'
 ```
 

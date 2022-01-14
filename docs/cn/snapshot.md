@@ -1,30 +1,30 @@
-[中文版](cn/snapshot.md)
+[English version](../snapshot.md)
 
-# Snapshot
+# 快照
 
-- [Prerequisite](#prerequisite)
+- <a href="#req">依赖</a>
 - [CurveBS](#curvebs)
-  - [Create SnapshotClass](#create-snapshotclass)
-  - [Create Snapshot](#create-snapshot)
-  - [Restore Snapshot to a new PVC](#restore-snapshot-to-a-new-pvc)
+  - <a href="#bscreatesc">创建SnapshotClass</a>
+  - <a href="#bscreatesnap">创建快照</a> 
+  - <a href="#bsrestore">从快照恢复</a>
 - [CurveFS](#curvefs)
 
-## Prerequisite
+## <div id="req">依赖</div>
 
-For snapshot functionality to be supported for your Kubernetes cluster, the Kubernetes version running in your cluster should be `>= v1.17`. We also need the snapshot controller deployed in your Kubernetes cluster along with csi-snapshotter sidecar container.
+对于快照功能的支持，kubernetes版本需要`>= v1.17`。并且需要部署snapshot控制器，csi控制器需要部署csi-snapshotter sidecar容器。
 
-**Git Repository:**  https://github.com/kubernetes-csi/external-snapshotter
+**Git地址:**  https://github.com/kubernetes-csi/external-snapshotter
 
-**Supported Versions**
+**版本支持**
 
-|Latest stable release	|Min CSI Version	|Max CSI Version	|Container Image	|Min K8s Version	|Max K8s Version	|Recommended K8s Version|
+|最新发布	|最小CSI版本	|最大CSI版本	|镜像	|最小K8s版本	|最大K8s版本	|建议K8s版本|
 | ---	| --- 	| ---	| ---	| --- |---	|---|
 |v4.2.1	|	v1.0.0	|-	|k8s.gcr.io/sig-storage/snapshot-controller:v4.2.1|	v1.20	|-	|v1.22|
 | v4.1.1|	v1.0.0	|-	|k8s.gcr.io/sig-storage/snapshot-controller:v4.1.1|	v1.20|	-	|v1.20|
 | v3.0.3 (beta)|	v1.0.0|	-|	k8s.gcr.io/sig-storage/snapshot-controller:v3.0.3	|v1.17	|-|	v1.17|
 
 
-**Install Snapshot Beta CRDs:**
+**安装Snapshot Beta CRDs:**
 
 ```bash
 kubectl create -f  https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-3.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
@@ -34,7 +34,7 @@ kubectl create -f  https://raw.githubusercontent.com/kubernetes-csi/external-sna
 kubectl create -f  https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-3.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
 ```
 
-**Install Snapshot Controller:**
+**安装Snapshot控制器:**
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-3.0/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml
@@ -44,15 +44,15 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snaps
 
 ## CurveBS
 
-### Create SnapshotClass
+### <div id="bscreatesc">创建SnapshotClass</div>
 
 ```bash
 kubectl create -f ../examples/curvebs/snapshotclass.yaml
 ```
 
-### Create Snapshot
+### <div id="bscreatesnap">创建快照</div> 
 
-- Verify if PVC is in Bound state
+- 确认PVC绑定：
 
 ```bash
 $ kubectl get pvc
@@ -60,13 +60,13 @@ NAME                     STATUS        VOLUME                                   
 curvebs-test-pvc         Bound         pvc-b2789e09-9854-4aa1-b556-d9b0e0569f87   30Gi       RWO            curvebs          35m
 ```
 
-- Create snapshot of the bound PVC
+- 创建此PVC的快照：
 
 ```bash
 kubectl create -f ../examples/curvebs/snapshot.yaml
 ```
 
-- Wait the snapshot ready
+- 等待快照完成：
 
 ```bash
 $ kubectl get volumesnapshot curvebs-snapshot-test  -o yaml
@@ -98,13 +98,13 @@ NAME                                               READYTOUSE   RESTORESIZE   DE
 snapcontent-9ed2b88c-e816-438f-996e-8819980f0159   true         32212254720   Delete           curvebs.csi.netease.com   curvebs-snapclass       curvebs-snapshot-test   5m20s
 ```
 
-### Restore Snapshot to a new PVC
+### <div id="bsrestore">从快照恢复</div> 
 
 ```bash
 kubectl create -f ../examples/curvebs/pvc-restore.yaml
 ```
 
-Get the pvc:
+查看新的PVC:
 
 ```bash
 $ kubectl get pvc curvebs-pvc-restore

@@ -1,3 +1,5 @@
+[中文版](../cn/curve-interface/curvebs-snapshot-clone-service.md)
+
 # Curve Block Storage Snapshot/Clone Interface
 
 - [Create a snapshot](#create-a-snapshot)

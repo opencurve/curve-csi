@@ -1,3 +1,5 @@
+[中文版](../cn/curve-interface/curvebs-cli.md)
+
 # Curve Block Storage CLI
 
 - [Create a directory](#create-a-directory)

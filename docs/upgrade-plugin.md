@@ -1,3 +1,5 @@
+[中文版](cn/upgrade-plugin.md)
+
 # Upgrade plugin
 
 This page explains how to upgrade a plugin.

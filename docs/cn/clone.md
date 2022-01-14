@@ -1,16 +1,16 @@
-[中文版](cn/clone.md)
+[English version](../clone.md)
 
-# CSI Clone doc
+# 克隆
 
 - [CurveBS](#curvebs)
-  - [Verify if PVC is in Bound state](#verify-if-pvc-is-in-bound-state)
-  - [Create a new cloned PVC](#create-a-new-cloned-pvc)
-  - [Get PVC](#get-pvc)
+  - <a href="#bsverify">确保pvc已绑定</a>
+  - <a href="#bscreate">创建新的克隆pvc</a>
+  - <a href="#bsnew">查看新的pvc</a>
 - [CurveFS](#curvefs)
 
 ## CurveBS
 
-### Verify if PVC is in Bound state
+### <div id="bsverify">确保pvc已绑定</div>
 
 ```bash
 $ kubectl get pvc
@@ -18,13 +18,13 @@ NAME                     STATUS        VOLUME                                   
 curvebs-test-pvc         Bound         pvc-b2789e09-9854-4aa1-b556-d9b0e0569f87   30Gi       RWO            curvebs          35m
 ```
 
-### Create a new cloned PVC
+### <div id="bscreate">创建新的克隆pvc</div>
 
 ```
 kubectl create -f ../examples/curvebs/pvc-clone.yaml
 ```
 
-### Get PVC
+### <div id="bsnew">查看新的pvc</div>
 
 ```bash
 $ kubectl get pvc curvebs-pvc-clone

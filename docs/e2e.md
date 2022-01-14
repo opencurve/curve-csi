@@ -1,3 +1,5 @@
+[中文版](cn/e2e.md)
+
 # E2E
 
 - [Prerequisite](#prerequisite)
