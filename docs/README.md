@@ -23,7 +23,7 @@ This document provides more detail about curve-csi driver.
 
 The curve-csi driver deploys on the hosts contain "Master" hosts and "Node" hosts.
 
-- On the "Master" hosts, install `curve tool` which communicates with the curve cluster to manage the volume lifecycle, such as Create/Delete/Expand/Snapshot.
+- On the "Master" hosts, install [curve tool](https://github.com/opencurve/curve/blob/master/docs/cn/curve%E9%80%9A%E8%BF%87tar%E5%8C%85%E6%89%8B%E5%8A%A8%E9%83%A8%E7%BD%B2sdk.md) which communicates with the curve cluster to manage the volume lifecycle, such as Create/Delete/Expand/Snapshot.
 - On the "Node" hosts, install `curve-nbd tool` which allows attaching/detaching volumes to workloads.
 
 Please refer to [deploy doc](https://github.com/opencurve/curve/blob/master/docs/cn/deploy.md) to get how to install `curve` and `curve-nbd` tool.
