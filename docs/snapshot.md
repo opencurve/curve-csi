@@ -13,9 +13,9 @@ For snapshot functionality to be supported for your Kubernetes cluster, the Kube
 
 |Latest stable release	|Min CSI Version	|Max CSI Version	|Container Image	|Min K8s Version	|Max K8s Version	|Recommended K8s Version|
 | ---	| --- 	| ---	| ---	| --- |---	|---|
-|v4.2.1	|	v1.0.0	|-	|k8s.gcr.io/sig-storage/snapshot-controller:v4.2.1|	v1.20	|-	|v1.22|
-| v4.1.1|	v1.0.0	|-	|k8s.gcr.io/sig-storage/snapshot-controller:v4.1.1|	v1.20|	-	|v1.20|
-| v3.0.3 (beta)|	v1.0.0|	-|	k8s.gcr.io/sig-storage/snapshot-controller:v3.0.3	|v1.17	|-|	v1.17|
+|v4.2.1	|	v1.0.0	|-	|registry.k8s.io/sig-storage/snapshot-controller:v4.2.1|	v1.20	|-	|v1.22|
+| v4.1.1|	v1.0.0	|-	|registry.k8s.io/sig-storage/snapshot-controller:v4.1.1|	v1.20|	-	|v1.20|
+| v3.0.3 (beta)|	v1.0.0|	-|	registry.k8s.io/sig-storage/snapshot-controller:v3.0.3	|v1.17	|-|	v1.17|
 
 
 **Install Snapshot Beta CRDs:**
