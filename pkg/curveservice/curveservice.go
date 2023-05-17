@@ -67,7 +67,7 @@ func NewCurveVolume(user, volName string, sizeGiB int) *CurveVolume {
 func (cv *CurveVolume) Stat(ctx context.Context) (*CurveVolumeDetail, error) {
 	args := []string{"stat", "--user", cv.User, "--filename", cv.FilePath}
 	ctxlog.V(4).Infof(ctx, "starting exec: curve %v", args)
-	output, err := util.ExecCommandHost("curve", args)
+	output, err := util.ExecCommand("curve", args)
 	outputStr := string(output)
 	if err == nil {
 		ctxlog.V(5).Infof(ctx, "[curve] successfully stat the volume, output: %v", outputStr)
@@ -110,7 +110,7 @@ func (cv *CurveVolume) Create(ctx context.Context) error {
 func (cv *CurveVolume) Delete(ctx context.Context) error {
 	args := []string{"delete", "--user", cv.User, "--filename", cv.FilePath}
 	ctxlog.V(4).Infof(ctx, "starting exec: curve %v", args)
-	output, err := util.ExecCommandHost("curve", args)
+	output, err := util.ExecCommand("curve", args)
 	if err != nil {
 		if strings.Contains(string(output), fmt.Sprintf(retFailFormat, retNotExist)) {
 			ctxlog.Warningf(ctx, "[curve] the file %s already deleted, ignore deleting it", cv.FilePath)
@@ -128,7 +128,7 @@ func (cv *CurveVolume) Extend(ctx context.Context, newSizeGiB int) error {
 	volLength := strconv.Itoa(newSizeGiB)
 	args := []string{"extend", "--user", cv.User, "--filename", cv.FilePath, "--length", volLength}
 	ctxlog.V(4).Infof(ctx, "starting exec: curve %v", args)
-	output, err := util.ExecCommandHost("curve", args)
+	output, err := util.ExecCommand("curve", args)
 	if err != nil {
 		return fmt.Errorf("failed to extend %s, err: %v, output: %v", cv.FilePath, err, string(output))
 	}
@@ -140,7 +140,7 @@ func (cv *CurveVolume) Extend(ctx context.Context, newSizeGiB int) error {
 func (cv *CurveVolume) mkdir(ctx context.Context) error {
 	args := []string{"mkdir", "--user", cv.User, "--dirname", cv.DirPath}
 	ctxlog.V(4).Infof(ctx, "starting exec: curve %v", args)
-	output, err := util.ExecCommandHost("curve", args)
+	output, err := util.ExecCommand("curve", args)
 	if err != nil {
 		if strings.Contains(string(output), fmt.Sprintf(retFailFormat, retExist)) {
 			ctxlog.V(4).Infof(ctx, "[curve] the dir %s of user %s already exists, ignore to mkdir", cv.DirPath, cv.User)
@@ -157,7 +157,7 @@ func (cv *CurveVolume) create(ctx context.Context) (output []byte, err error) {
 	volLength := strconv.Itoa(cv.SizeGiB)
 	args := []string{"create", "--filename", cv.FilePath, "--length", volLength, "--user", cv.User}
 	ctxlog.V(4).Infof(ctx, "starting exec: curve %v", args)
-	output, err = util.ExecCommandHost("curve", args)
+	output, err = util.ExecCommand("curve", args)
 	if err != nil {
 		if strings.Contains(string(output), fmt.Sprintf(retFailFormat, retExist)) {
 			ctxlog.Warningf(ctx, "[curve] the file %s already exists, ignore recreating it", cv.FilePath)
@@ -172,7 +172,7 @@ func (cv *CurveVolume) create(ctx context.Context) (output []byte, err error) {
 func (cv *CurveVolume) list(ctx context.Context) ([]string, error) {
 	args := []string{"list", "--user", cv.User, "--dirname", cv.DirPath}
 	ctxlog.V(4).Infof(ctx, "starting exec: curve %v", args)
-	output, err := util.ExecCommandHost("curve", args)
+	output, err := util.ExecCommand("curve", args)
 	outputStr := string(output)
 	if err != nil {
 		if strings.Contains(outputStr, fmt.Sprintf(retFailFormat, retNotExist)) {
@@ -211,13 +211,10 @@ func (cv *CurveVolume) Map(ctx context.Context, disableInUseChecks bool) (string
 
 	// map device
 	cbdMapPath := fmt.Sprintf("cbd:%s/%s_%s_", cv.User, cv.FilePath, cv.User)
-	mapCommands := []string{curveNbdCmd, "map", cbdMapPath, "--timeout", "86400"}
-	serviceName := genServiceNameByFilePath(cv.FilePath)
-	if err := util.SystemMapOnHost(ctx, serviceName, mapCommands); err != nil {
-		return "", err
-	}
+	args := []string{"map", cbdMapPath, "--timeout", "86400"}
+	go util.ExecCommand(curveNbdCmd, args)
 
-	devicePath, found = waitForMapped(ctx, cv.FilePath, cv.User, 5)
+	devicePath, found = waitForMapped(ctx, cv.FilePath, cv.User, 10)
 	if !found {
 		return "", fmt.Errorf("can not find devicePath after mapping successfully")
 	}
@@ -232,23 +229,11 @@ func (cv *CurveVolume) UnMap(ctx context.Context) error {
 		return err
 	}
 
-	serviceName := genServiceNameByFilePath(cv.FilePath)
-	if devicePath == "" {
-		ctxlog.Infof(ctx, "[curve-nbd] file %s already unmapped, just cleaning %s.service", cv.FilePath, serviceName)
-		_, _ = util.ExecCommandHost("systemctl", []string{"stop", serviceName})
-		_, _ = util.ExecCommandHost("systemctl", []string{"reset-failed", serviceName})
-		return nil
-	}
-
 	// unmap
-	output, err := util.ExecCommandHost(curveNbdCmd, []string{"unmap", devicePath})
+	output, err := util.ExecCommand(curveNbdCmd, []string{"unmap", devicePath})
 	if err != nil {
 		return fmt.Errorf("curve: unmap file %s failed, err: %v, output: %v", cv.FilePath, err, string(output))
 	}
-	// clean up service
-	if _, err = util.ExecCommandHost("systemctl", []string{"stop", serviceName}); err != nil {
-		ctxlog.Warningf(ctx, "[curve-nbd] failed to stop %s.service", serviceName)
-	}
-	_, _ = util.ExecCommandHost("systemctl", []string{"reset-failed", serviceName})
+
 	return nil
 }

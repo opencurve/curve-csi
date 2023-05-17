@@ -44,7 +44,7 @@ spec:
           capabilities:
             add: ["SYS_ADMIN"]
           allowPrivilegeEscalation: true
-        image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:v2.0.0
+        image: harbor.cloud.netease.com/curve/curve-csi:v3.0.0
         args:
         - --endpoint=$(CSI_ENDPOINT)
         - --drivername=curve.csi.netease.com
@@ -69,6 +69,8 @@ spec:
               fieldPath: metadata.namespace
         - name: CSI_ENDPOINT
           value: unix:///csi/csi.sock
+        - name: MDSADDR
+          value: 10.0.0.1:6700,10.0.0.2:6700,10.0.0.3:6700
         volumeMounts:
         - name: socket-dir
           mountPath: /csi

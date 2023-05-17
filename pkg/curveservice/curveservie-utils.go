@@ -53,7 +53,7 @@ func InitCurveNbd() {
 }
 
 func checkNebdDaemonRunning() (bool, error) {
-	output, err := util.ExecCommandHost("nebd-daemon", []string{"status"})
+	output, err := util.ExecCommand("nebd-daemon", []string{"status"})
 	if err != nil {
 		klog.Warningf("failed to run nebd-daemon status, output: %v, err: %v", string(output), err)
 		return false, err
@@ -84,7 +84,7 @@ func waitForMapped(ctx context.Context, filePath, user string, maxRetries int) (
 // id      image                                                                device
 // 1509297 cbd:k8s//k8s/csi-vol-pvc-647525be-c0d6-464b-b548-1fa26f6d183c_k8s_ /dev/nbd1
 func getNbdDevFromFileName(ctx context.Context, filePath, user string) (string, error) {
-	output, err := util.ExecCommandHost("curve-nbd", []string{"list-mapped"})
+	output, err := util.ExecCommand("curve-nbd", []string{"list-mapped"})
 	if err != nil {
 		return "", fmt.Errorf("can not run curve-nbd list-mapped, err: %v, output: %s", err, string(output))
 	}
@@ -142,8 +142,4 @@ func waitForCurveFileReady(ctx context.Context, fileName, user string, disableIn
 func curveStatus(ctx context.Context, fileName, user string) (bool, string, error) {
 	// Not implemented yet
 	return false, "", nil
-}
-
-func genServiceNameByFilePath(filePath string) string {
-	return strings.ReplaceAll(strings.Trim(filePath, "/"), "/", "_")
 }
