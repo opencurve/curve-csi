@@ -1,4 +1,4 @@
-CSI_IMAGE_NAME?=harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi
+CSI_IMAGE_NAME?=harbor.cloud.netease.com/curve/curve-csi
 
 # VERSION is the git tag
 VERSION?=$(shell git describe --tags --match "v*")

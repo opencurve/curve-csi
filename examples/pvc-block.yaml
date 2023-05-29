@@ -9,4 +9,5 @@ spec:
   storageClassName: curve
   resources:
     requests:
+      # Take 10Gi as the unit, the minimum is 10Gi
       storage: 20Gi

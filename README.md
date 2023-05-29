@@ -29,8 +29,7 @@ and [curve interface](docs/curve-interface).
 
 ## Setup
 
-1. Deploy the `curve tool` on the CO "Master" Hosts and `curve-nbd tool` on CO "Node" Hosts by the curve cluster provider.
-2. Choose a way to deploy the plugin:
+Choose a way to deploy the plugin:
 
 - Using the helm chart: [helm installation](charts/curve-csi/README.md)
 - Using the kubernetes manifests: refer to the specific version in `deploy/manifests`
