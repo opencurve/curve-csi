@@ -141,6 +141,8 @@ spec:
               fieldPath: spec.nodeName
         - name: CSI_ENDPOINT
           value: unix:///csi/csi-provisioner.sock
+        - name: MDSADDR
+          value: 10.0.0.1:6700,10.0.0.2:6700,10.0.0.3:6700
         resources:
 {{ toYaml .Values.controllerplugin.plugin.resources | indent 10 }}
         volumeMounts:
