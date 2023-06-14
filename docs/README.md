@@ -3,9 +3,13 @@
 This document provides more detail about curve-csi driver.
 
 - [Deploy](#deploy)
-  - [Requirements](#requirements)
+  - [Prerequisite](#prerequisite)
+  - [v3.0.0](#v300)
+    - [Using the kubernetes manifests](#using-the-kubernetes-manifests)
+  - [v2.0.0](#v200)
+    - [Requirements](#requirements)
+    - [Using the kubernetes manifests](#using-the-kubernetes-manifests)
   - [Using the helm chart](#using-the-helm-chart)
-  - [Using the kubernetes manifests](#using-the-kubernetes-manifests)
 - [Debug](#debug)
 - [Examples](#examples)
   - [Create StorageClass](#create-storageclass)
@@ -19,20 +23,46 @@ This document provides more detail about curve-csi driver.
 
 ## Deploy
 
+curve-csi v3.0.0 run client in pod instead of installing `curve` and `curve-nbd` tools manually in v2.0.0. We recommend using v3.0.0.
+
+### Prerequisite
+
+refer to `deploy/manifests`
+
+- For single node k8s cluster, modify replicas in [deploy/manifests/provisioner-deploy.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/provisioner-deploy.yaml#L8) to 1.
+
+- Modify the env `MDSADDR` at [provisioner-deploy.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/provisioner-deploy.yaml#L129) and [node-plugin-daemonset.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/node-plugin-daemonset.yaml#L72) as backend cluster addr.
+
+- Modify the `--snapshot-server` startup parameter at [provisioner-deployment](https://github.com/opencurve/curve-csi/blob/1fd7e98cf4fc7be6f6a9fb3043a4c3f3236bd96d/deploy/manifests/provisioner-deploy.yaml#L108)
+  - Delete the line if don't need the snapshot feature.
+  - Modify it to the correct backend curvebs snapshotcloneserver address and refer the [docs snapshot](https://github.com/opencurve/curve-csi/blob/master/docs/snapshot.md) to install other components.
+
+### v3.0.0
+
+#### Using the kubernetes manifests
+
+For version v3.0.0, using the following command to complete the deployment.
+
+```shell
+kubectl apply -f deploy/manifests/*
+```
+
+### v2.0.0
+
 #### Requirements
 
 The curve-csi driver deploys on the hosts contain "Master" hosts and "Node" hosts.
 
-- On the "Master" hosts, install `curve tool` which communicates with the curve cluster to manage the volume lifecycle, such as Create/Delete/Expand/Snapshot.
-- On the "Node" hosts, install `curve-nbd tool` which allows attaching/detaching volumes to workloads.
+1. Install tools
 
-Please refer to [deploy doc](https://github.com/opencurve/curve/blob/master/docs/cn/deploy.md) to get how to install `curve` and `curve-nbd` tool.
+    Please refer to [deploy doc](https://github.com/opencurve/curve/blob/master/docs/cn/deploy.md) to get how to install `curve` and `curve-nbd` tool.
 
-#### Using the helm chart
+    - On the "Master" hosts, install `curve tool` which communicates with the curve cluster to manage the volume lifecycle, such as Create/Delete/Expand/Snapshot.
+    - On the "Node" hosts, install `curve-nbd tool` which allows attaching/detaching volumes to workloads.
 
-```bash
-helm install --namespace "csi-system" charts/curve-csi
-```
+2. Beforehand
+
+    Change to v2.0.0 image(`curvecsi/curvecsi:v2.0.0`) at [provisioner-deploy.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/provisioner-deploy.yaml#LL103C10-L103C10) and [node-plugin-daemonset.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/node-plugin-daemonset.yaml#L47)
 
 #### Using the kubernetes manifests
 
@@ -41,6 +71,10 @@ Change to the `deploy/manifests/` directory, create the files:
 ```bash
 kubectl apply -f ./*.yaml
 ```
+
+### Using the helm chart
+
+See at doc [helm installation](../charts/curve-csi/README.md)
 
 ## Debug
 

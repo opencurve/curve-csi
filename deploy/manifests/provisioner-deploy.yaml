@@ -100,7 +100,7 @@ spec:
           privileged: true
           capabilities:
             add: ["SYS_ADMIN"]
-        image: harbor.cloud.netease.com/curve/curve-csi:v3.0.0
+        image: curvecsi/curve-csi:v3.0.0
         args:
         - --endpoint=$(CSI_ENDPOINT)
         - --drivername=curve.csi.netease.com

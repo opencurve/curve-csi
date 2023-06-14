@@ -9,7 +9,7 @@ nodeplugin:
     hostDir: /var/log/curve-csi-node
 
   plugin:
-    image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:v2.0.0
+    image: curvecsi/curve-csi:v3.0.0
     # add resources limit
     resources: {}
 
@@ -39,7 +39,7 @@ controllerplugin:
     hostDir: /var/log/curve-csi-controller
 
   plugin:
-    image: harbor.cloud.netease.com/qzprod-k8s/k8scsi/curve-csi:v2.0.0
+    image: curvecsi/curve-csi:v3.0.0
     # add resources limit
     resources: {}
 

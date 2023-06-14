@@ -10,14 +10,13 @@ provisioning curve volumes and attaching them to workloads.
 
 Refer to [https://github.com/opencurve/curve](https://github.com/opencurve/curve) for the Curve details.
 
-
 ## Supported version
 
 The driver is currently developed with csi spec v1.5.0, and supported kubernetes v1.17+.
 
 Other csi-v1.0+ enabled container orchestrator environments may work fine.
 
-#### CSI spec and Kubernetes version compatibility
+### CSI spec and Kubernetes version compatibility
 
 Please refer to the [matrix](https://kubernetes-csi.github.io/docs/#kubernetes-releases)
 in the Kubernetes documentation.
@@ -31,8 +30,8 @@ and [curve interface](docs/curve-interface).
 
 Choose a way to deploy the plugin:
 
-- Using the helm chart: [helm installation](charts/curve-csi/README.md)
-- Using the kubernetes manifests: refer to the specific version in `deploy/manifests`
+1. Using the kubernetes manifests: refer to [deploy doc](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/docs/README.md?plain=1#L20)
+2. Using the helm chart: [helm installation](charts/curve-csi/README.md)
 
 ## Test and User Guide
 
