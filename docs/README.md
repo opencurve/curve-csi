@@ -8,7 +8,7 @@ This document provides more detail about curve-csi driver.
     - [Using the kubernetes manifests](#using-the-kubernetes-manifests)
   - [v2.0.0](#v200)
     - [Requirements](#requirements)
-    - [Using the kubernetes manifests](#using-the-kubernetes-manifests)
+    - [Apply manifests](#apply-manifests)
   - [Using the helm chart](#using-the-helm-chart)
 - [Debug](#debug)
 - [Examples](#examples)
@@ -53,23 +53,26 @@ kubectl apply -f deploy/manifests/*
 
 The curve-csi driver deploys on the hosts contain "Master" hosts and "Node" hosts.
 
-1. Install tools
-
-    Please refer to [deploy doc](https://github.com/opencurve/curve/blob/master/docs/cn/deploy.md) to get how to install `curve` and `curve-nbd` tool.
-
-    - On the "Master" hosts, install `curve tool` which communicates with the curve cluster to manage the volume lifecycle, such as Create/Delete/Expand/Snapshot.
-    - On the "Node" hosts, install `curve-nbd tool` which allows attaching/detaching volumes to workloads.
-
-2. Beforehand
+1. Beforehand
 
     Change to v2.0.0 image(`curvecsi/curvecsi:v2.0.0`) at [provisioner-deploy.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/provisioner-deploy.yaml#LL103C10-L103C10) and [node-plugin-daemonset.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/node-plugin-daemonset.yaml#L47)
 
-#### Using the kubernetes manifests
+2. Install tools
 
-Change to the `deploy/manifests/` directory, create the files:
+    Please refer to [deploy doc](https://ask.opencurve.io/t/topic/89) for specific deployment details about v2.0.0
 
-```bash
-kubectl apply -f ./*.yaml
+Additional:
+
+- On the "Master" hosts, install `curve tool` which communicates with the curve cluster to manage the volume lifecycle, such as Create/Delete/Expand/Snapshot.
+
+- On the "Node" hosts, install `curve-nbd tool` which allows attaching/detaching volumes to workloads.
+
+#### Apply manifests
+
+Use the following command to complete the deployment.
+
+```shell
+kubectl apply -f deploy/manifests/*
 ```
 
 ### Using the helm chart

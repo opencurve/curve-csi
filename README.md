@@ -30,7 +30,7 @@ and [curve interface](docs/curve-interface).
 
 Choose a way to deploy the plugin:
 
-1. Using the kubernetes manifests: refer to [deploy doc](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/docs/README.md?plain=1#L20)
+1. Using the kubernetes manifests: refer to [deploy doc](docs/README.md)
 2. Using the helm chart: [helm installation](charts/curve-csi/README.md)
 
 ## Test and User Guide
