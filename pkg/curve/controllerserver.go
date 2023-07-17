@@ -417,10 +417,7 @@ func (cs *controllerServer) createVolFromContentSource(
 	req *csi.CreateVolumeRequest,
 	destVolOptions *volumeOptions,
 	curveVol *curveservice.CurveVolume) (volSource string, err error) {
-	if cs.snapshotServer == "" {
-		return "", status.Error(codes.Unimplemented, "")
-	}
-
+	
 	if req.VolumeContentSource == nil {
 		return "", nil
 	}
@@ -429,6 +426,10 @@ func (cs *controllerServer) createVolFromContentSource(
 	// check contentSource
 	switch req.VolumeContentSource.Type.(type) {
 	case *csi.VolumeContentSource_Snapshot:
+		if cs.snapshotServer == "" {
+			return "", status.Error(codes.Unimplemented, "")
+		}
+
 		snapshotId := req.VolumeContentSource.GetSnapshot().GetSnapshotId()
 		// lock out parallel snapshot
 		if acquired := cs.snapshotLocks.TryAcquire(snapshotId); !acquired {
