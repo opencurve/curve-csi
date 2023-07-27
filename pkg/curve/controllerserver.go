@@ -417,7 +417,7 @@ func (cs *controllerServer) createVolFromContentSource(
 	req *csi.CreateVolumeRequest,
 	destVolOptions *volumeOptions,
 	curveVol *curveservice.CurveVolume) (volSource string, err error) {
-	
+
 	if req.VolumeContentSource == nil {
 		return "", nil
 	}
