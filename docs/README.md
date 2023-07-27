@@ -34,7 +34,7 @@ refer to `deploy/manifests`
 - Modify the env `MDSADDR` at [provisioner-deploy.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/provisioner-deploy.yaml#L129) and [node-plugin-daemonset.yaml](https://github.com/opencurve/curve-csi/blob/0ecb1fd4d47819c49acf1f7f92a53ab5ac83c514/deploy/manifests/node-plugin-daemonset.yaml#L72) as backend cluster addr.
 
 - Modify the `--snapshot-server` startup parameter at [provisioner-deployment](https://github.com/opencurve/curve-csi/blob/1fd7e98cf4fc7be6f6a9fb3043a4c3f3236bd96d/deploy/manifests/provisioner-deploy.yaml#L108)
-  - Delete the line if don't need the snapshot feature.
+  - Set the line `--snapshot-server=` if don't need the snapshot feature.
   - Modify it to the correct backend curvebs snapshotcloneserver address and refer the [docs snapshot](https://github.com/opencurve/curve-csi/blob/master/docs/snapshot.md) to install other components.
 
 ### v3.0.0
