@@ -25,6 +25,7 @@ type CurveConf struct {
 	// csi flags
 	IsControllerServer bool
 	IsNodeServer       bool
+	IsClient           bool
 
 	// curve flags
 	SnapshotServer string

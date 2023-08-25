@@ -1,4 +1,4 @@
-FROM golang:1.16.11
+FROM golang:1.18.6
 
 WORKDIR /go/src/github.com/opencurve/curve-csi
 COPY . .

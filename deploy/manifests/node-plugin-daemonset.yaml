@@ -71,6 +71,8 @@ spec:
           value: unix:///csi/csi.sock
         - name: MDSADDR
           value: 10.0.0.1:6700,10.0.0.2:6700,10.0.0.3:6700
+        - name: CLIENT_IMAGE
+          alue: curvecsi/curve-csi:v3.0.1
         volumeMounts:
         - name: socket-dir
           mountPath: /csi

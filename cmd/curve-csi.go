@@ -47,7 +47,7 @@ func init() {
 	// CSI spec flags
 	flag.BoolVar(&curveConf.IsNodeServer, "node-server", false, "start curve-csi node server")
 	flag.BoolVar(&curveConf.IsControllerServer, "controller-server", false, "start curve-csi controller server")
-
+	flag.BoolVar(&curveConf.IsClient, "client", false, "start curve-nbd client")
 	// curve snashot/clone server
 	flag.StringVar(&curveConf.SnapshotServer, "snapshot-server", "", "curve snapshot/clone http server address, set empty to disable snapshot")
 

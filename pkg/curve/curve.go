@@ -108,7 +108,7 @@ func (c *curveDriver) Run(curveConf options.CurveConf) {
 		c.ns = NewNodeServer(c.driver)
 	}
 
-	if !curveConf.IsControllerServer && !curveConf.IsNodeServer {
+	if !curveConf.IsControllerServer && !curveConf.IsNodeServer && !curveConf.IsClient {
 		c.cs = NewControllerServer(c.driver, curveConf.SnapshotServer)
 		c.ns = NewNodeServer(c.driver)
 	}
