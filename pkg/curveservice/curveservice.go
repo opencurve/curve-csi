@@ -214,7 +214,9 @@ func (cv *CurveVolume) Map(ctx context.Context, disableInUseChecks bool) (string
 	cbdMapPath := fmt.Sprintf("cbd:%s/%s_%s_", cv.User, cv.FilePath, cv.User)
 	// create volume pod to map volume
 	command := fmt.Sprintf("%s map %s --timeout 86400", curveNbdCmd, cbdMapPath)
-	output, err := k8sutil.MapVolumeInPod(ctx, cv.FileName, command)
+	// volume name+node id  csi-vol-pvc-88408893-a5ef-475b-9cde-fc4052a05333-192.168.5.2
+	podName := util.GenVolumePodName(cv.FileName)
+	output, err := k8sutil.MapVolumeInPod(ctx, podName, command)
 	if err != nil {
 		return "", fmt.Errorf("curve map %s may not be ready, err: %v", cv.FilePath, err)
 	}
@@ -237,7 +239,8 @@ func (cv *CurveVolume) UnMap(ctx context.Context) error {
 
 	// unmap
 	command := fmt.Sprintf("%s unmap %s", curveNbdCmd, devicePath)
-	err = k8sutil.UnMapVolumeInPod(ctx, cv.FileName, command)
+	podName := util.GenVolumePodName(cv.FileName)
+	err = k8sutil.UnMapVolumeInPod(ctx, podName, command)
 	if err != nil {
 		return fmt.Errorf("curve unmap %s maybe failed, err: %v", cv.FilePath, err)
 	}

@@ -19,6 +19,7 @@ package util
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -106,4 +107,8 @@ func (e *NotFoundErr) Error() string {
 func IsNotFoundErr(err error, id ...string) bool {
 	notFoundErr := NewNotFoundErr(id...)
 	return err.Error() == notFoundErr.Error()
+}
+
+func GenVolumePodName(volumeName string) string {
+	return fmt.Sprintf("%s-%s", volumeName, os.Getenv("NODE_ID"))
 }
