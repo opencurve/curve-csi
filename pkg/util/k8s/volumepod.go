@@ -16,7 +16,7 @@ import (
 
 func MapVolumeInPod(ctx context.Context, podName string, command string) (output string, err error) {
 	namespace := os.Getenv("POD_NAMESPACE")
-	iamgeName := os.Getenv("CLIENT_IMAGE")
+	imageName := os.Getenv("CLIENT_IMAGE")
 	// check volume pod exists
 	pod, err := getPod(ctx, podName, namespace)
 	if err != nil {
@@ -25,7 +25,7 @@ func MapVolumeInPod(ctx context.Context, podName string, command string) (output
 	// pod not exist
 	if pod == nil {
 		// create volume pod
-		if err := createVolumePod(ctx, podName, namespace, iamgeName); err != nil {
+		if err := createVolumePod(ctx, podName, namespace, imageName); err != nil {
 			return "", err
 		}
 		return "", fmt.Errorf("waiting for the pod running, pod:%s", podName)
