@@ -24,6 +24,7 @@ import (
 
 	"github.com/opencurve/curve-csi/pkg/util"
 	"github.com/opencurve/curve-csi/pkg/util/ctxlog"
+	k8sutil "github.com/opencurve/curve-csi/pkg/util/k8s"
 )
 
 const (
@@ -211,8 +212,15 @@ func (cv *CurveVolume) Map(ctx context.Context, disableInUseChecks bool) (string
 
 	// map device
 	cbdMapPath := fmt.Sprintf("cbd:%s/%s_%s_", cv.User, cv.FilePath, cv.User)
-	args := []string{"map", cbdMapPath, "--timeout", "86400"}
-	go util.ExecCommand(curveNbdCmd, args)
+	// create volume pod to map volume
+	command := fmt.Sprintf("%s map %s --timeout 86400", curveNbdCmd, cbdMapPath)
+	// volume name+node id  csi-vol-pvc-88408893-a5ef-475b-9cde-fc4052a05333-192.168.5.2
+	podName := util.GenVolumePodName(cv.FileName)
+	output, err := k8sutil.MapVolumeInPod(ctx, podName, command)
+	if err != nil {
+		return "", fmt.Errorf("curve map %s may not be ready, err: %v", cv.FilePath, err)
+	}
+	ctxlog.Infof(ctx, "[curve-nbd] map curve file: %s output: %s", cv.FilePath, output)
 
 	devicePath, found = waitForMapped(ctx, cv.FilePath, cv.User, 10)
 	if !found {
@@ -230,10 +238,11 @@ func (cv *CurveVolume) UnMap(ctx context.Context) error {
 	}
 
 	// unmap
-	output, err := util.ExecCommand(curveNbdCmd, []string{"unmap", devicePath})
+	command := fmt.Sprintf("%s unmap %s", curveNbdCmd, devicePath)
+	podName := util.GenVolumePodName(cv.FileName)
+	err = k8sutil.UnMapVolumeInPod(ctx, podName, command)
 	if err != nil {
-		return fmt.Errorf("curve: unmap file %s failed, err: %v, output: %v", cv.FilePath, err, string(output))
+		return fmt.Errorf("curve unmap %s maybe failed, err: %v", cv.FilePath, err)
 	}
-
 	return nil
 }
