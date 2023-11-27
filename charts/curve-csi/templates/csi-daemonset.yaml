@@ -79,7 +79,7 @@ spec:
         - name: CSI_ENDPOINT
           value: unix:///csi/csi.sock
         - name: MDSADDR
-          value: 10.0.0.1:6700,10.0.0.2:6700,10.0.0.3:6700
+          value: {{ .Values.curve.mdsAddr }}
         resources:
 {{ toYaml .Values.nodeplugin.plugin.resources | indent 10 }}
         volumeMounts:

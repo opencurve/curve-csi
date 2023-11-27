@@ -116,7 +116,7 @@ spec:
         - --endpoint=$(CSI_ENDPOINT)
         - --drivername=curve.csi.netease.com
         - --nodeid=$(NODE_ID)
-        - --snapshot-server={{ .Values.controllerplugin.snapshotServer }}
+        - --snapshot-server={{ .Values.curve.snapshotServer }}
 {{- if .Values.controllerplugin.debug.enabled }}
         - "--debug-port={{ .Values.controllerplugin.debug.port }}"
 {{- end }}
@@ -142,7 +142,7 @@ spec:
         - name: CSI_ENDPOINT
           value: unix:///csi/csi-provisioner.sock
         - name: MDSADDR
-          value: 10.0.0.1:6700,10.0.0.2:6700,10.0.0.3:6700
+          value: {{ .Values.curve.mdsAddr }}
         resources:
 {{ toYaml .Values.controllerplugin.plugin.resources | indent 10 }}
         volumeMounts:
