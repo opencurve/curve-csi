@@ -1,3 +1,7 @@
+curve:
+  mdsAddr:
+  snapshotServer:
+
 # node plugin variables
 nodeplugin:
   debug:
@@ -9,7 +13,7 @@ nodeplugin:
     hostDir: /var/log/curve-csi-node
 
   plugin:
-    image: curvecsi/curve-csi:v3.0.0
+    image: curvecsi/curve-csi:v3.0.1
     # add resources limit
     resources: {}
 
@@ -28,8 +32,6 @@ nodeplugin:
 controllerplugin:
   replicas: 2
 
-  snapshotServer: http://127.0.0.1:5555
-
   debug:
     enabled: true
     port: 9696
@@ -39,7 +41,7 @@ controllerplugin:
     hostDir: /var/log/curve-csi-controller
 
   plugin:
-    image: curvecsi/curve-csi:v3.0.0
+    image: curvecsi/curve-csi:v3.0.1
     # add resources limit
     resources: {}
 
@@ -68,3 +70,6 @@ controllerplugin:
   tolerations: []
 
   affinity: {}
+
+storageClass:
+  enable: false
