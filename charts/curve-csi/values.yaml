@@ -13,7 +13,7 @@ nodeplugin:
     hostDir: /var/log/curve-csi-node
 
   plugin:
-    image: curvecsi/curve-csi:v3.0.0
+    image: curvecsi/curve-csi:v3.0.1
     # add resources limit
     resources: {}
 
@@ -41,7 +41,7 @@ controllerplugin:
     hostDir: /var/log/curve-csi-controller
 
   plugin:
-    image: curvecsi/curve-csi:v3.0.0
+    image: curvecsi/curve-csi:v3.0.1
     # add resources limit
     resources: {}
 
