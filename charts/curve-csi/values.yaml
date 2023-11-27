@@ -68,3 +68,6 @@ controllerplugin:
   tolerations: []
 
   affinity: {}
+
+storageClass:
+  enable: false
